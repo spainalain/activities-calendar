@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activities Calendar</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --today-bg: #eff6ff;
+      --today-border: #3b82f6;
+      --hover: #f9fafb;
+      --event: #eab308;
+      --event-bg: #fefce8;
+      --event-border: #facc15;
+      --campaign: #a855f7;
+      --campaign-bg: #faf5ff;
+      --campaign-border: #c084fc;
+      --asset: #92400e;
+      --asset-bg: #fef3c7;
+      --asset-border: #d97706;
+      --project: #ea580c;
+      --project-bg: #fff7ed;
+      --project-border: #fb923c;
+      --pr-comms: #ec4899;
+      --pr-comms-bg: #fdf2f8;
+      --pr-comms-border: #f472b6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .app { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header h1 { font-size: 20px; font-weight: 600; }
+    .month-nav { display: flex; align-items: center; gap: 8px; }
+    .month-nav button {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--text); transition: background 0.15s;
+    }
+    .month-nav button:hover { background: var(--hover); }
+    .month-label { font-size: 16px; font-weight: 600; min-width: 180px; text-align: center; }
+    .today-btn { background: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
+    .today-btn:hover { background: #2563eb !important; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filter-chip {
+      display: flex; align-items: center; gap: 4px; padding: 4px 10px;
+      border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer;
+      border: 1.5px solid; transition: opacity 0.15s; user-select: none;
+    }
+    .filter-chip.inactive { opacity: 0.35; }
+    .filter-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #854d0e; }
+    .filter-chip[data-category="Event"] .dot { background: var(--event); }
+    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #6b21a8; }
+    .filter-chip[data-category="Campaign"] .dot { background: var(--campaign); }
+    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
+    .filter-chip[data-category="Asset"] .dot { background: var(--asset); }
+    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #9a3412; }
+    .filter-chip[data-category="Project"] .dot { background: var(--project); }
+    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #9d174d; }
+    .filter-chip[data-category="PR & Comms"] .dot { background: var(--pr-comms); }
+    .type-filters {
+      display: flex; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 1px solid var(--border);
+    }
+    .type-pill {
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border); background: white;
+      color: var(--text-secondary); transition: all 0.15s; user-select: none;
+    }
+    .type-pill.active { background: var(--text); color: white; border-color: var(--text); }
+    .status-filters {
+      display: flex; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 1px solid var(--border);
+    }
+    .status-pill {
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border); background: white;
+      color: var(--text-secondary); transition: all 0.15s; user-select: none;
+    }
+    .status-pill.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+    .calendar { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .weekday-header {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      background: var(--border-light); border-bottom: 1px solid var(--border);
+    }
+    .weekday-header div {
+      padding: 8px; text-align: center; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .calendar-day {
+      min-height: 120px; border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border); padding: 4px; position: relative; overflow: hidden;
+    }
+    .calendar-day:nth-child(7n) { border-right: none; }
+    .calendar-day.other-month { background: var(--border-light); }
+    .calendar-day.other-month .day-number { color: #d1d5db; }
+    .calendar-day.today { background: var(--today-bg); }
+    .calendar-day.today .day-number {
+      background: var(--today-border); color: white; border-radius: 50%;
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    }
+    .day-number { font-size: 13px; font-weight: 500; padding: 2px 4px; margin-bottom: 2px; display: inline-block; }
+    .cal-item {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px;
+      cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-weight: 500; border-left: 3px solid; transition: opacity 0.15s; position: relative;
+    }
+    .cal-item:hover { opacity: 0.85; }
+    .cal-item.parent { font-weight: 600; }
+    .cal-item.milestone { font-style: italic; }
+    .cal-item.action-item { font-weight: 400; }
+    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #854d0e; }
+    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #6b21a8; }
+    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
+    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #9a3412; }
+    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #9d174d; }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; flex-shrink: 0;
+    }
+    .status-dot.done { background: #22c55e; }
+    .status-dot.in-progress { background: #3b82f6; }
+    .status-dot.not-started { background: #d1d5db; }
+    .status-dot.backlog { background: #9ca3af; }
+    .more-items {
+      font-size: 10px; color: var(--text-secondary); padding: 1px 4px; cursor: pointer; text-align: center;
+    }
+    .more-items:hover { color: var(--text); text-decoration: underline; }
+    .popup-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+      z-index: 1000; justify-content: center; align-items: center;
+    }
+    .popup-overlay.active { display: flex; }
+    .popup {
+      background: white; border-radius: 12px; padding: 24px; max-width: 480px;
+      width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
+    }
+    .popup-close {
+      position: absolute; top: 12px; right: 12px; background: none; border: none;
+      font-size: 20px; cursor: pointer; color: var(--text-secondary);
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px;
+    }
+    .popup-close:hover { background: var(--border-light); }
+    .popup h3 { font-size: 18px; margin-bottom: 12px; padding-right: 32px; }
+    .popup-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .popup-meta-row { display: flex; gap: 8px; font-size: 13px; }
+    .popup-meta-label { color: var(--text-secondary); min-width: 80px; }
+    .popup-meta-value { font-weight: 500; }
+    .popup-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .popup-link {
+      display: inline-block; margin-top: 12px; padding: 8px 16px; background: #1a1a1a;
+      color: white; text-decoration: none; border-radius: 6px; font-size: 13px;
+      font-weight: 500; transition: background 0.15s;
+    }
+    .popup-link:hover { background: #374151; }
+    .stats-bar {
+      display: flex; gap: 16px; margin-bottom: 16px; font-size: 13px;
+      color: var(--text-secondary); flex-wrap: wrap;
+    }
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat strong { color: var(--text); }
+    @media (max-width: 900px) {
+      .calendar-day { min-height: 80px; }
+      .cal-item { font-size: 10px; padding: 1px 4px; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="header-left">
+        <h1>Activities Calendar</h1>
+        <div class="month-nav">
+          <button onclick="prevMonth()">&larr;</button>
+          <span class="month-label" id="monthLabel"></span>
+          <button onclick="nextMonth()">&rarr;</button>
+          <button class="today-btn" onclick="goToday()">Today</button>
+        </div>
+      </div>
+    </div>
+    <div class="filters" id="filters">
+      <div class="filter-chip" data-category="Event" onclick="toggleCategory('Event')"><span class="dot"></span> Event</div>
+      <div class="filter-chip" data-category="Campaign" onclick="toggleCategory('Campaign')"><span class="dot"></span> Campaign</div>
+      <div class="filter-chip" data-category="Asset" onclick="toggleCategory('Asset')"><span class="dot"></span> Asset</div>
+      <div class="filter-chip" data-category="Project" onclick="toggleCategory('Project')"><span class="dot"></span> Project</div>
+      <div class="filter-chip" data-category="PR & Comms" onclick="toggleCategory('PR & Comms')"><span class="dot"></span> PR & Comms</div>
+      <div class="type-filters">
+        <div class="type-pill active" data-type="parent" onclick="toggleType('parent')">Parent</div>
+        <div class="type-pill active" data-type="milestone" onclick="toggleType('milestone')">Milestone</div>
+        <div class="type-pill active" data-type="action" onclick="toggleType('action')">Action Item</div>
+      </div>
+      <div class="status-filters">
+        <div class="status-pill active" data-status="all" onclick="setStatusFilter('all')">All</div>
+        <div class="status-pill" data-status="active" onclick="setStatusFilter('active')">Active</div>
+        <div class="status-pill" data-status="done" onclick="setStatusFilter('done')">Done</div>
+      </div>
+    </div>
+    <div class="stats-bar" id="statsBar"></div>
+    <div id="calendarContainer"></div>
+    <div class="popup-overlay" id="popupOverlay" onclick="closePopup(event)">
+      <div class="popup" id="popup"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Sample data from your actual Notion Activities database ----
+    const activities = [
+      { id: "1", name: "NeurIPS 2026", type: "Parent - Event", category: "Event", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-12-06" }, endDate: { start: "2026-12-11" }, parentItem: [], subItems: [], owner: [], strategicInitiative: "Expand visibility", notionUrl: "https://www.notion.so/3370571b42f381f89a33d1d29c95b332" },
+      { id: "2", name: "Yotta 2026", type: "Parent - Event", category: "Event", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-09-28" }, endDate: { start: "2026-09-28" }, parentItem: [], subItems: [], owner: [], strategicInitiative: "Expand visibility", notionUrl: "https://www.notion.so/3370571b42f3814f89fbd4744e9fd140" },
+      { id: "3", name: "Sail X Semi Summit 2026", type: "Parent - Event", category: "Event", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-10-05" }, endDate: { start: "2026-10-05" }, parentItem: [], subItems: [], owner: [], strategicInitiative: "Expand visibility", notionUrl: "https://www.notion.so/3370571b42f381a38a07c63a021efe2f" },
+      { id: "4", name: "MFU Whitepaper", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-27" }, endDate: { start: "2026-04-26" }, parentItem: [], subItems: ["5","6","7"], owner: [], strategicInitiative: "Build credibility", notionUrl: "https://www.notion.so/3300571b42f38011a481ddd0b478d2fa" },
+      { id: "5", name: "MFU Whitepaper - Launch campaign", type: "Parent - Campaign", category: "Campaign", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-07" }, endDate: { start: "2026-04-20" }, parentItem: ["4"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3300571b42f3808cba1ee57785ca15ca" },
+      { id: "6", name: "MFU Whitepaper - blog post", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-10" }, endDate: { start: "2026-04-18" }, parentItem: ["4"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3300571b42f3803a9db2fb609daead23" },
+      { id: "7", name: "MFU Whitepaper - social post", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-04-16" }, parentItem: ["4"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3300571b42f3809787ccecb7e2bec4f1" },
+      { id: "8", name: "BLOG: Flash attention blog series: Part 1", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-15" }, endDate: { start: "2026-04-06" }, parentItem: [], subItems: ["9","10","11"], owner: [], notionUrl: "https://www.notion.so/3370571b42f3814985dcec507d0a7810" },
+      { id: "9", name: "SOCIAL: Flash Attention Part 1", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-06" }, endDate: { start: "2026-04-06" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38144a732e120ae7da5fa" },
+      { id: "10", name: "BLOG: Flash attention Part 2", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-07" }, endDate: { start: "2026-04-20" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381939f3dc0df80e06949" },
+      { id: "11", name: "BLOG: Flash attention Part 3", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-21" }, endDate: { start: "2026-05-04" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381c0a9afe87e84fff957" },
+      { id: "12", name: "AI systems book activation", type: "Parent - Campaign", category: "Campaign", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-27" }, endDate: { start: "2026-05-15" }, parentItem: [], subItems: ["13","14","15"], owner: [], strategicInitiative: "Build credibility", notionUrl: "https://www.notion.so/3300571b42f38073ac5df1502f2f3146" },
+      { id: "13", name: "AI book - Landing page", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-03-27" }, endDate: { start: "2026-04-04" }, parentItem: ["12"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3360571b42f380d296b3d6c63d4d7e4b" },
+      { id: "14", name: "AI book - Paid LinkedIn", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "Not started", startDate: { start: "2026-04-07" }, endDate: { start: "2026-04-25" }, parentItem: ["12"], subItems: [], owner: [], notionUrl: "#" },
+      { id: "15", name: "AI book - Newsletter feature", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "Not started", startDate: { start: "2026-04-15" }, endDate: { start: "2026-04-15" }, parentItem: ["12"], subItems: [], owner: [], notionUrl: "#" },
+      { id: "16", name: "Model Card: Qwen3.5-122B-A10B", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-04-03" }, endDate: { start: "2026-04-10" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3816ba03ddad12115638f" },
+      { id: "17", name: "BLOG: 4Bit Training", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-04-28" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381719cf4d6dbe5d46d4c" },
+      { id: "18", name: "SI Storage whitepaper", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-21" }, endDate: { start: "2026-05-09" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3818a8eb2c4e7e56963c9" },
+      { id: "19", name: "HubSpot form middleware", type: "Milestone - Project", category: "Project", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-07" }, endDate: { start: "2026-04-18" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381518632e08af7c217cc" },
+      { id: "20", name: "Paid Search - Evergreen Campaigns", type: "Parent - Campaign", category: "Campaign", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-01" }, endDate: { start: "2026-06-30" }, parentItem: [], subItems: ["21","22","23"], owner: [], notionUrl: "https://www.notion.so/3350571b42f380a2ae19e7b17f78befa" },
+      { id: "21", name: "Paid Search - Brand Campaign", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-03-01" }, endDate: { start: "2026-06-30" }, parentItem: ["20"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3350571b42f3809d8028c288be8c5c41" },
+      { id: "22", name: "Paid Search - 1CC Campaign", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-03-01" }, endDate: { start: "2026-06-30" }, parentItem: ["20"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3350571b42f38043a0e2e7fc2b97a4e0" },
+      { id: "23", name: "Paid Search - B200 Campaign", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-03-15" }, endDate: { start: "2026-06-30" }, parentItem: ["20"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3350571b42f3807a90decc23c49c2c8a" },
+      { id: "24", name: "Customer Marketing: Boston Dynamics", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-05-02" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3814d96a7e56cce682f11" },
+      { id: "25", name: "Customer Marketing: Thomson Reuters", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-21" }, endDate: { start: "2026-05-09" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3814ebc31d4ccf002d8f1" },
+      { id: "26", name: "Customer Marketing: Terray Therapeutics", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-05-04" }, endDate: { start: "2026-05-22" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381e3af00cfcdd6f4a890" },
+      { id: "27", name: "BLOG: Synthetic data (Hermes)", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-24" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38098a797d50fb078ee73" },
+      { id: "28", name: "Lambda Product Offering Datasheet", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-04-01" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3812e9507e504513f70b6" },
+      { id: "29", name: "Instances datasheet", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-04-01" }, endDate: { start: "2026-04-08" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38112be04cfdd8c7eb042" },
+      { id: "30", name: "March 2026 Newsletter", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Done", startDate: { start: "2026-03-20" }, endDate: { start: "2026-03-31" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3811a90e9ccfdcafc7af2" },
+      { id: "31", name: "Post event nurture", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-04-01" }, endDate: { start: "2026-04-15" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3300571b42f38054a9c5fe374a21da8e" },
+      { id: "32", name: "Tagging Engine", type: "Parent - Project", category: "Project", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-15" }, endDate: { start: "2026-04-30" }, parentItem: [], subItems: ["33"], owner: [], notionUrl: "https://www.notion.so/3350571b42f380dabcb3cd0ed6e5107b" },
+      { id: "33", name: "Tagging Engine RFC", type: "Milestone - Project", category: "Project", isParent: false, isMilestone: true, isActionItem: false, status: "Done", startDate: { start: "2026-03-15" }, endDate: { start: "2026-03-28" }, parentItem: ["32"], subItems: [], owner: [], notionUrl: "https://www.notion.so/3350571b42f38071bdeee75ae86a81e8" },
+      { id: "34", name: "Rundown AI Primary Ad 4/8", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "Not started", startDate: { start: "2026-04-08" }, endDate: { start: "2026-04-08" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3360571b42f380919f1bf808cb55ba0d" },
+      { id: "35", name: "The Deep View Deep Dive Ad 4/25", type: "Action item - Campaign", category: "Campaign", isParent: false, isMilestone: false, isActionItem: true, status: "Not started", startDate: { start: "2026-04-25" }, endDate: { start: "2026-04-25" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3360571b42f380b9a9eef2efd41c483c" },
+      { id: "36", name: "Model Card: GLM-5", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-04-01" }, endDate: { start: "2026-04-08" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38189b956c315e452cc8b" },
+      { id: "37", name: "Superclusters messaging guide", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-24" }, endDate: { start: "2026-04-04" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38106b215d6d7b010c453" },
+      { id: "38", name: "1-Click Cluster messaging guide", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-24" }, endDate: { start: "2026-04-04" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38105a4d8d449f2355801" },
+      { id: "39", name: "SFDC campaigns", type: "Action item - Project", category: "Project", isParent: false, isMilestone: false, isActionItem: true, status: "In progress", startDate: { start: "2026-03-28" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3350571b42f380e18dc2e7a38bb7ce61" },
+      { id: "40", name: "Hubspot Emails - Evergreen", type: "Parent - Campaign", category: "Campaign", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-15" }, endDate: { start: "2026-04-30" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3800abe44feff58b08063" },
+      { id: "41", name: "Customer Marketing: OpenFold case study", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-05-02" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38126b476db99b9aac25c" },
+      { id: "42", name: "Customer Marketing: Kodiak case study", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-21" }, endDate: { start: "2026-05-09" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381e98d8ff0189a61ffc5" },
+      { id: "43", name: "Customer Marketing: Spree AI case study", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-05-04" }, endDate: { start: "2026-05-22" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3816b802ed6f4bb2b0545" },
+      { id: "44", name: "Homepage segment personalization", type: "Parent - Project", category: "Project", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-05-16" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3818a83e5c64d1fddf2f1" },
+      { id: "45", name: "Lambda factsheet one-pager", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-31" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381cba407fc5eab4a7d56" },
+      { id: "46", name: "H100 benchmarks external 1-pager", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-31" }, endDate: { start: "2026-04-08" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381d0ab9fd7844718d180" },
+      { id: "47", name: "BLOG: Meta OpenEnv", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-04-28" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381008f64f808f4dfa183" },
+      { id: "48", name: "VR & SI Digital Asset", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-24" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381358455dd22a26d5f6d" },
+      { id: "49", name: "SI Storage FAQ/brief", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "Not started", startDate: { start: "2026-04-14" }, endDate: { start: "2026-04-25" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3817d9124c9061a9ebff3" },
+      { id: "50", name: "Customer Marketing: MSR", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-17" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38199b8dff7f564731eb5" },
+      { id: "51", name: "Lambda 2026 Datacenter Content Plan", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-17" }, endDate: { start: "2026-04-04" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381858442c3ecc5e6131c" },
+      { id: "52", name: "New vLLM/Model Card section", type: "Milestone - Project", category: "Project", isParent: false, isMilestone: true, isActionItem: false, status: "In progress", startDate: { start: "2026-03-24" }, endDate: { start: "2026-04-11" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f38106b7f7c63b20737ee3" },
+      { id: "53", name: "Run with VLLM guides", type: "Parent - Asset", category: "Asset", isParent: true, isMilestone: false, isActionItem: false, status: "In progress", startDate: { start: "2026-03-17" }, endDate: { start: "2026-04-04" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f3811e8db3e53a9d9b3bf7" },
+      { id: "54", name: "Customer Marketing: MSR whitepaper", type: "Milestone - Asset", category: "Asset", isParent: false, isMilestone: true, isActionItem: false, status: "Not started", startDate: { start: "2026-04-07" }, endDate: { start: "2026-04-25" }, parentItem: [], subItems: [], owner: [], notionUrl: "https://www.notion.so/3370571b42f381aaa1d5cd75b5e8daad" },
+    ];
+
+    // ---- State ----
+    let currentDate = new Date(2026, 3, 1); // April 2026
+    let activeCategories = new Set(['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms']);
+    let activeTypes = new Set(['parent', 'milestone', 'action']);
+    let statusFilter = 'all';
+    const MAX_ITEMS_PER_DAY = 4;
+
+    // ---- Stats ----
+    function updateStats() {
+      const withDates = activities.filter(a => a.startDate || a.endDate);
+      const parents = activities.filter(a => a.isParent);
+      const subs = activities.filter(a => !a.isParent);
+      document.getElementById('statsBar').innerHTML = `
+        <div class="stat"><strong>${activities.length}</strong> total items</div>
+        <div class="stat"><strong>${withDates.length}</strong> with dates</div>
+        <div class="stat"><strong>${parents.length}</strong> parents</div>
+        <div class="stat"><strong>${subs.length}</strong> sub-items</div>
+      `;
+    }
+
+    // ---- Filters ----
+    function toggleCategory(cat) {
+      const chip = document.querySelector(`.filter-chip[data-category="${cat}"]`);
+      if (activeCategories.has(cat)) { activeCategories.delete(cat); chip.classList.add('inactive'); }
+      else { activeCategories.add(cat); chip.classList.remove('inactive'); }
+      renderCalendar();
+    }
+    function toggleType(type) {
+      const pill = document.querySelector(`.type-pill[data-type="${type}"]`);
+      if (activeTypes.has(type)) { activeTypes.delete(type); pill.classList.remove('active'); }
+      else { activeTypes.add(type); pill.classList.add('active'); }
+      renderCalendar();
+    }
+    function setStatusFilter(filter) {
+      statusFilter = filter;
+      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.status-pill[data-status="${filter}"]`).classList.add('active');
+      renderCalendar();
+    }
+    function passesFilters(item) {
+      if (!activeCategories.has(item.category)) return false;
+      if (item.isParent && !activeTypes.has('parent')) return false;
+      if (item.isMilestone && !activeTypes.has('milestone')) return false;
+      if (item.isActionItem && !activeTypes.has('action')) return false;
+      if (statusFilter === 'active' && item.status === 'Done') return false;
+      if (statusFilter === 'done' && item.status !== 'Done') return false;
+      return true;
+    }
+
+    // ---- Navigation ----
+    function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
+    function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
+    function goToday() { currentDate = new Date(); renderCalendar(); }
+
+    // ---- Calendar rendering ----
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      document.getElementById('monthLabel').textContent =
+        new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startOffset = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+      const days = [];
+      const prevMonthLast = new Date(year, month, 0).getDate();
+      for (let i = startOffset - 1; i >= 0; i--) days.push({ date: new Date(year, month - 1, prevMonthLast - i), otherMonth: true });
+      for (let d = 1; d <= totalDays; d++) days.push({ date: new Date(year, month, d), otherMonth: false });
+      const remaining = 7 - (days.length % 7);
+      if (remaining < 7) for (let d = 1; d <= remaining; d++) days.push({ date: new Date(year, month + 1, d), otherMonth: true });
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      let html = `<div class="calendar"><div class="weekday-header">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div><div class="calendar-grid">`;
+
+      days.forEach(day => {
+        const dateStr = formatDate(day.date);
+        const isToday = day.date.getTime() === today.getTime();
+        const classes = ['calendar-day'];
+        if (day.otherMonth) classes.push('other-month');
+        if (isToday) classes.push('today');
+        const dayItems = getItemsForDate(dateStr);
+        html += `<div class="${classes.join(' ')}">`;
+        html += `<div class="day-number">${day.date.getDate()}</div>`;
+        const visibleItems = dayItems.slice(0, MAX_ITEMS_PER_DAY);
+        const hiddenCount = dayItems.length - MAX_ITEMS_PER_DAY;
+        visibleItems.forEach(item => {
+          const typeClass = item.isParent ? 'parent' : item.isMilestone ? 'milestone' : 'action-item';
+          const statusClass = getStatusClass(item.status);
+          const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+          html += `<div class="cal-item ${typeClass}" data-category="${item.category}"
+                        onclick="showDetail('${item.id}')" title="${item.name}">
+                    <span class="status-dot ${statusClass}"></span>${prefix}${item.name}
+                   </div>`;
+        });
+        if (hiddenCount > 0) html += `<div class="more-items" onclick="showDayDetail('${dateStr}')">+${hiddenCount} more</div>`;
+        html += `</div>`;
+      });
+      html += '</div></div>';
+      document.getElementById('calendarContainer').innerHTML = html;
+    }
+
+    function getItemsForDate(dateStr) {
+      return activities.filter(item => {
+        if (!passesFilters(item)) return false;
+        const start = item.startDate?.start;
+        const end = item.endDate?.start;
+        if (!start && !end) return false;
+
+        // Only "Parent - Event" items span across their full date range
+        const isParentEvent = item.type === 'Parent - Event';
+
+        if (isParentEvent) {
+          // Span from start to end
+          if (start && !end) return start === dateStr;
+          if (!start && end) return end === dateStr;
+          return dateStr >= start && dateStr <= end;
+        } else {
+          // Everything else: show only on the end date (due date)
+          // Fall back to start date if no end date exists
+          const showDate = end || start;
+          return showDate === dateStr;
+        }
+      });
+    }
+
+    // ---- Detail popup ----
+    function showDetail(itemId) {
+      const item = activities.find(a => a.id === itemId);
+      if (!item) return;
+      const categoryBadgeStyle = getCategoryBadgeStyle(item.category);
+      const statusClass = getStatusClass(item.status);
+      let parentName = '';
+      if (item.parentItem.length > 0) { const p = activities.find(a => a.id === item.parentItem[0]); parentName = p ? p.name : ''; }
+      const subItems = item.subItems.map(id => activities.find(a => a.id === id)).filter(Boolean);
+      document.getElementById('popup').innerHTML = `
+        <button class="popup-close" onclick="closePopup(event)">&times;</button>
+        <h3>${item.name}</h3>
+        <div class="popup-meta">
+          <div class="popup-meta-row"><span class="popup-meta-label">Type</span><span class="popup-badge" style="${categoryBadgeStyle}">${item.type}</span></div>
+          <div class="popup-meta-row"><span class="popup-meta-label">Status</span><span class="popup-meta-value"><span class="status-dot ${statusClass}"></span> ${item.status || 'N/A'}</span></div>
+          ${item.startDate ? `<div class="popup-meta-row"><span class="popup-meta-label">Start</span><span class="popup-meta-value">${formatDisplayDate(item.startDate.start)}</span></div>` : ''}
+          ${item.endDate ? `<div class="popup-meta-row"><span class="popup-meta-label">End / Due</span><span class="popup-meta-value">${formatDisplayDate(item.endDate.start)}</span></div>` : ''}
+          ${item.strategicInitiative ? `<div class="popup-meta-row"><span class="popup-meta-label">Initiative</span><span class="popup-meta-value">${item.strategicInitiative}</span></div>` : ''}
+          ${parentName ? `<div class="popup-meta-row"><span class="popup-meta-label">Parent</span><span class="popup-meta-value">${parentName}</span></div>` : ''}
+          ${subItems.length > 0 ? `<div class="popup-meta-row"><span class="popup-meta-label">Sub-items</span><span class="popup-meta-value">${subItems.map(s => s.name).join(', ')}</span></div>` : ''}
+        </div>
+        <a class="popup-link" href="${item.notionUrl}" target="_blank" rel="noopener">Open in Notion &rarr;</a>
+      `;
+      document.getElementById('popupOverlay').classList.add('active');
+    }
+
+    function showDayDetail(dateStr) {
+      const dayItems = getItemsForDate(dateStr);
+      document.getElementById('popup').innerHTML = `
+        <button class="popup-close" onclick="closePopup(event)">&times;</button>
+        <h3>${formatDisplayDate(dateStr)}</h3>
+        <div style="margin-top: 12px;">
+          ${dayItems.map(item => {
+            const categoryBadgeStyle = getCategoryBadgeStyle(item.category);
+            const statusClass = getStatusClass(item.status);
+            const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+            return `<div style="padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;" onclick="showDetail('${item.id}')">
+              <span class="status-dot ${statusClass}"></span><strong>${prefix}${item.name}</strong>
+              <span class="popup-badge" style="${categoryBadgeStyle}; margin-left: 6px; font-size: 10px;">${item.type}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      `;
+      document.getElementById('popupOverlay').classList.add('active');
+    }
+
+    function closePopup(e) {
+      if (e.target === document.getElementById('popupOverlay') || e.target.classList.contains('popup-close'))
+        document.getElementById('popupOverlay').classList.remove('active');
+    }
+
+    // ---- Helpers ----
+    function formatDate(date) { return date.toISOString().split('T')[0]; }
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function getStatusClass(status) {
+      switch (status) {
+        case 'Done': return 'done'; case 'In progress': return 'in-progress';
+        case 'Not started': return 'not-started'; case 'Backlog': return 'backlog'; default: return 'not-started';
+      }
+    }
+    function getCategoryBadgeStyle(category) {
+      const s = {
+        'Event': 'background: var(--event-bg); color: #854d0e; border: 1px solid var(--event-border)',
+        'Campaign': 'background: var(--campaign-bg); color: #6b21a8; border: 1px solid var(--campaign-border)',
+        'Asset': 'background: var(--asset-bg); color: #92400e; border: 1px solid var(--asset-border)',
+        'Project': 'background: var(--project-bg); color: #9a3412; border: 1px solid var(--project-border)',
+        'PR & Comms': 'background: var(--pr-comms-bg); color: #9d174d; border: 1px solid var(--pr-comms-border)',
+      };
+      return s[category] || 'background: #f3f4f6; color: #374151';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.getElementById('popupOverlay').classList.remove('active');
+      if (e.key === 'ArrowLeft') prevMonth();
+      if (e.key === 'ArrowRight') nextMonth();
+    });
+
+    // Init
+    updateStats();
+    renderCalendar();
+  </script>
+</body>
+</html>

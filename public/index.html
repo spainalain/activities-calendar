@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activities Calendar</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --today-bg: #eff6ff;
+      --today-border: #3b82f6;
+      --hover: #f9fafb;
+
+      /* Category colors matching Notion */
+      --event: #eab308;
+      --event-bg: #fefce8;
+      --event-border: #facc15;
+      --campaign: #a855f7;
+      --campaign-bg: #faf5ff;
+      --campaign-border: #c084fc;
+      --asset: #92400e;
+      --asset-bg: #fef3c7;
+      --asset-border: #d97706;
+      --project: #ea580c;
+      --project-bg: #fff7ed;
+      --project-border: #fb923c;
+      --pr-comms: #ec4899;
+      --pr-comms-bg: #fdf2f8;
+      --pr-comms-border: #f472b6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .month-nav button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: background 0.15s;
+    }
+
+    .month-nav button:hover {
+      background: var(--hover);
+    }
+
+    .month-label {
+      font-size: 16px;
+      font-weight: 600;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .today-btn {
+      background: #3b82f6 !important;
+      color: white !important;
+      border-color: #3b82f6 !important;
+    }
+
+    .today-btn:hover {
+      background: #2563eb !important;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: opacity 0.15s;
+      user-select: none;
+    }
+
+    .filter-chip.inactive {
+      opacity: 0.35;
+    }
+
+    .filter-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #854d0e; }
+    .filter-chip[data-category="Event"] .dot { background: var(--event); }
+    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #6b21a8; }
+    .filter-chip[data-category="Campaign"] .dot { background: var(--campaign); }
+    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
+    .filter-chip[data-category="Asset"] .dot { background: var(--asset); }
+    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #9a3412; }
+    .filter-chip[data-category="Project"] .dot { background: var(--project); }
+    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #9d174d; }
+    .filter-chip[data-category="PR & Comms"] .dot { background: var(--pr-comms); }
+
+    /* Type filter pills */
+    .type-filters {
+      display: flex;
+      gap: 6px;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+
+    .type-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .type-pill.active {
+      background: var(--text);
+      color: white;
+      border-color: var(--text);
+    }
+
+    /* Status filter */
+    .status-filters {
+      display: flex;
+      gap: 6px;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .status-pill.active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    /* Calendar Grid */
+    .calendar {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .weekday-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--border-light);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .weekday-header div {
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-day {
+      min-height: 120px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calendar-day:nth-child(7n) {
+      border-right: none;
+    }
+
+    .calendar-day.other-month {
+      background: var(--border-light);
+    }
+
+    .calendar-day.other-month .day-number {
+      color: #d1d5db;
+    }
+
+    .calendar-day.today {
+      background: var(--today-bg);
+    }
+
+    .calendar-day.today .day-number {
+      background: var(--today-border);
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-number {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 2px 4px;
+      margin-bottom: 2px;
+      display: inline-block;
+    }
+
+    /* Event items */
+    .cal-item {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+      border-left: 3px solid;
+      transition: opacity 0.15s;
+      position: relative;
+    }
+
+    .cal-item:hover {
+      opacity: 0.85;
+    }
+
+    .cal-item.parent { font-weight: 600; }
+    .cal-item.milestone { font-style: italic; }
+    .cal-item.action-item { font-weight: 400; }
+
+    /* Category-specific item colors */
+    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #854d0e; }
+    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #6b21a8; }
+    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
+    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #9a3412; }
+    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #9d174d; }
+
+    /* Multi-day spanning items */
+    .cal-item.span-start {
+      border-radius: 4px 0 0 4px;
+      margin-right: 0;
+    }
+    .cal-item.span-middle {
+      border-radius: 0;
+      margin-left: 0;
+      margin-right: 0;
+      border-left: none;
+    }
+    .cal-item.span-end {
+      border-radius: 0 4px 4px 0;
+      margin-left: 0;
+      border-left: none;
+    }
+
+    /* Status dot */
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 3px;
+      flex-shrink: 0;
+    }
+
+    .status-dot.done { background: #22c55e; }
+    .status-dot.in-progress { background: #3b82f6; }
+    .status-dot.not-started { background: #d1d5db; }
+    .status-dot.backlog { background: #9ca3af; }
+
+    /* More items indicator */
+    .more-items {
+      font-size: 10px;
+      color: var(--text-secondary);
+      padding: 1px 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .more-items:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+
+    /* Tooltip / Popup */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-overlay.active {
+      display: flex;
+    }
+
+    .popup {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .popup-close:hover {
+      background: var(--border-light);
+    }
+
+    .popup h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      padding-right: 32px;
+    }
+
+    .popup-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .popup-meta-row {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .popup-meta-label {
+      color: var(--text-secondary);
+      min-width: 80px;
+    }
+
+    .popup-meta-value {
+      font-weight: 500;
+    }
+
+    .popup-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .popup-link {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: #1a1a1a;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .popup-link:hover {
+      background: #374151;
+    }
+
+    /* Loading & Error states */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      text-align: center;
+      padding: 40px 20px;
+      color: #dc2626;
+      background: #fef2f2;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat strong {
+      color: var(--text);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .calendar-day { min-height: 80px; }
+      .cal-item { font-size: 10px; padding: 1px 4px; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .filters { margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="header-left">
+        <h1>Activities Calendar</h1>
+        <div class="month-nav">
+          <button onclick="prevMonth()">&larr;</button>
+          <span class="month-label" id="monthLabel"></span>
+          <button onclick="nextMonth()">&rarr;</button>
+          <button class="today-btn" onclick="goToday()">Today</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters" id="filters">
+      <!-- Category filters -->
+      <div class="filter-chip" data-category="Event" onclick="toggleCategory('Event')">
+        <span class="dot"></span> Event
+      </div>
+      <div class="filter-chip" data-category="Campaign" onclick="toggleCategory('Campaign')">
+        <span class="dot"></span> Campaign
+      </div>
+      <div class="filter-chip" data-category="Asset" onclick="toggleCategory('Asset')">
+        <span class="dot"></span> Asset
+      </div>
+      <div class="filter-chip" data-category="Project" onclick="toggleCategory('Project')">
+        <span class="dot"></span> Project
+      </div>
+      <div class="filter-chip" data-category="PR & Comms" onclick="toggleCategory('PR & Comms')">
+        <span class="dot"></span> PR & Comms
+      </div>
+
+      <!-- Type filters -->
+      <div class="type-filters">
+        <div class="type-pill active" data-type="parent" onclick="toggleType('parent')">Parent</div>
+        <div class="type-pill active" data-type="milestone" onclick="toggleType('milestone')">Milestone</div>
+        <div class="type-pill active" data-type="action" onclick="toggleType('action')">Action Item</div>
+      </div>
+
+      <!-- Status filters -->
+      <div class="status-filters">
+        <div class="status-pill active" data-status="all" onclick="setStatusFilter('all')">All</div>
+        <div class="status-pill" data-status="active" onclick="setStatusFilter('active')">Active</div>
+        <div class="status-pill" data-status="done" onclick="setStatusFilter('done')">Done</div>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+
+    <div id="calendarContainer">
+      <div class="loading">
+        <div class="spinner"></div>
+        Loading activities...
+      </div>
+    </div>
+
+    <!-- Detail popup -->
+    <div class="popup-overlay" id="popupOverlay" onclick="closePopup(event)">
+      <div class="popup" id="popup"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---- State ----
+    let currentDate = new Date();
+    let activities = [];
+    let activeCategories = new Set(['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms']);
+    let activeTypes = new Set(['parent', 'milestone', 'action']);
+    let statusFilter = 'all';
+
+    const MAX_ITEMS_PER_DAY = 4;
+
+    // ---- Data fetching ----
+    async function fetchActivities() {
+      try {
+        const res = await fetch('/api/activities');
+        const json = await res.json();
+        if (json.success) {
+          activities = json.data;
+          updateStats();
+          renderCalendar();
+        } else {
+          showError(json.error);
+        }
+      } catch (err) {
+        showError('Could not connect to server. Make sure the server is running.');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('calendarContainer').innerHTML =
+        `<div class="error"><strong>Error:</strong> ${msg}</div>`;
+    }
+
+    // ---- Stats ----
+    function updateStats() {
+      const withDates = activities.filter(a => a.startDate || a.endDate);
+      const parents = activities.filter(a => a.isParent);
+      const subs = activities.filter(a => !a.isParent);
+      const bar = document.getElementById('statsBar');
+      bar.innerHTML = `
+        <div class="stat"><strong>${activities.length}</strong> total items</div>
+        <div class="stat"><strong>${withDates.length}</strong> with dates</div>
+        <div class="stat"><strong>${parents.length}</strong> parents</div>
+        <div class="stat"><strong>${subs.length}</strong> sub-items</div>
+      `;
+    }
+
+    // ---- Filters ----
+    function toggleCategory(cat) {
+      const chip = document.querySelector(`.filter-chip[data-category="${cat}"]`);
+      if (activeCategories.has(cat)) {
+        activeCategories.delete(cat);
+        chip.classList.add('inactive');
+      } else {
+        activeCategories.add(cat);
+        chip.classList.remove('inactive');
+      }
+      renderCalendar();
+    }
+
+    function toggleType(type) {
+      const pill = document.querySelector(`.type-pill[data-type="${type}"]`);
+      if (activeTypes.has(type)) {
+        activeTypes.delete(type);
+        pill.classList.remove('active');
+      } else {
+        activeTypes.add(type);
+        pill.classList.add('active');
+      }
+      renderCalendar();
+    }
+
+    function setStatusFilter(filter) {
+      statusFilter = filter;
+      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.status-pill[data-status="${filter}"]`).classList.add('active');
+      renderCalendar();
+    }
+
+    function passesFilters(item) {
+      // Category filter
+      if (!activeCategories.has(item.category)) return false;
+
+      // Type filter
+      if (item.isParent && !activeTypes.has('parent')) return false;
+      if (item.isMilestone && !activeTypes.has('milestone')) return false;
+      if (item.isActionItem && !activeTypes.has('action')) return false;
+
+      // Status filter
+      if (statusFilter === 'active' && item.status === 'Done') return false;
+      if (statusFilter === 'done' && item.status !== 'Done') return false;
+
+      return true;
+    }
+
+    // ---- Navigation ----
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    function goToday() {
+      currentDate = new Date();
+      renderCalendar();
+    }
+
+    // ---- Calendar rendering ----
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      document.getElementById('monthLabel').textContent =
+        new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startOffset = firstDay.getDay(); // 0=Sun
+      const totalDays = lastDay.getDate();
+
+      // Build day cells
+      const days = [];
+
+      // Previous month fill
+      const prevMonthLast = new Date(year, month, 0).getDate();
+      for (let i = startOffset - 1; i >= 0; i--) {
+        days.push({ date: new Date(year, month - 1, prevMonthLast - i), otherMonth: true });
+      }
+
+      // Current month
+      for (let d = 1; d <= totalDays; d++) {
+        days.push({ date: new Date(year, month, d), otherMonth: false });
+      }
+
+      // Next month fill (complete last week)
+      const remaining = 7 - (days.length % 7);
+      if (remaining < 7) {
+        for (let d = 1; d <= remaining; d++) {
+          days.push({ date: new Date(year, month + 1, d), otherMonth: true });
+        }
+      }
+
+      // Get items for each day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let html = `
+        <div class="calendar">
+          <div class="weekday-header">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div class="calendar-grid">
+      `;
+
+      days.forEach(day => {
+        const dateStr = formatDate(day.date);
+        const isToday = day.date.getTime() === today.getTime();
+        const classes = ['calendar-day'];
+        if (day.otherMonth) classes.push('other-month');
+        if (isToday) classes.push('today');
+
+        const dayItems = getItemsForDate(dateStr);
+
+        html += `<div class="${classes.join(' ')}">`;
+        html += `<div class="day-number">${day.date.getDate()}</div>`;
+
+        const visibleItems = dayItems.slice(0, MAX_ITEMS_PER_DAY);
+        const hiddenCount = dayItems.length - MAX_ITEMS_PER_DAY;
+
+        visibleItems.forEach(item => {
+          const typeClass = item.isParent ? 'parent' : item.isMilestone ? 'milestone' : 'action-item';
+          const statusClass = getStatusClass(item.status);
+          const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+
+          html += `<div class="cal-item ${typeClass}" data-category="${item.category}"
+                        onclick="showDetail('${item.id}')" title="${item.name}">
+                    <span class="status-dot ${statusClass}"></span>${prefix}${item.name}
+                   </div>`;
+        });
+
+        if (hiddenCount > 0) {
+          html += `<div class="more-items" onclick="showDayDetail('${dateStr}')">+${hiddenCount} more</div>`;
+        }
+
+        html += `</div>`;
+      });
+
+      html += '</div></div>';
+
+      document.getElementById('calendarContainer').innerHTML = html;
+    }
+
+    function getItemsForDate(dateStr) {
+      return activities.filter(item => {
+        if (!passesFilters(item)) return false;
+
+        const start = item.startDate?.start;
+        const end = item.endDate?.start;
+
+        if (!start && !end) return false;
+
+        // Only "Parent - Event" items span across their full date range
+        const isParentEvent = item.type === 'Parent - Event';
+
+        if (isParentEvent) {
+          if (start && !end) return start === dateStr;
+          if (!start && end) return end === dateStr;
+          return dateStr >= start && dateStr <= end;
+        } else {
+          // Everything else: show only on the end date (due date)
+          // Fall back to start date if no end date exists
+          const showDate = end || start;
+          return showDate === dateStr;
+        }
+      });
+    }
+
+    // ---- Detail popup ----
+    function showDetail(itemId) {
+      const item = activities.find(a => a.id === itemId);
+      if (!item) return;
+
+      const categoryBadgeStyle = getCategoryBadgeStyle(item.category);
+      const statusClass = getStatusClass(item.status);
+
+      // Find parent name if exists
+      let parentName = '';
+      if (item.parentItem.length > 0) {
+        const parent = activities.find(a => a.id === item.parentItem[0]);
+        parentName = parent ? parent.name : '';
+      }
+
+      // Find sub-items
+      const subItems = item.subItems
+        .map(id => activities.find(a => a.id === id))
+        .filter(Boolean);
+
+      const popup = document.getElementById('popup');
+      popup.innerHTML = `
+        <button class="popup-close" onclick="closePopup(event)">&times;</button>
+        <h3>${item.name}</h3>
+        <div class="popup-meta">
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Type</span>
+            <span class="popup-badge" style="${categoryBadgeStyle}">${item.type}</span>
+          </div>
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Status</span>
+            <span class="popup-meta-value"><span class="status-dot ${statusClass}"></span> ${item.status || 'N/A'}</span>
+          </div>
+          ${item.startDate ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Start</span>
+            <span class="popup-meta-value">${formatDisplayDate(item.startDate.start)}</span>
+          </div>` : ''}
+          ${item.endDate ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">End / Due</span>
+            <span class="popup-meta-value">${formatDisplayDate(item.endDate.start)}</span>
+          </div>` : ''}
+          ${item.owner.length > 0 ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Owner</span>
+            <span class="popup-meta-value">${item.owner.join(', ')}</span>
+          </div>` : ''}
+          ${item.strategicInitiative ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Initiative</span>
+            <span class="popup-meta-value">${item.strategicInitiative}</span>
+          </div>` : ''}
+          ${parentName ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Parent</span>
+            <span class="popup-meta-value">${parentName}</span>
+          </div>` : ''}
+          ${subItems.length > 0 ? `
+          <div class="popup-meta-row">
+            <span class="popup-meta-label">Sub-items</span>
+            <span class="popup-meta-value">${subItems.map(s => s.name).join(', ')}</span>
+          </div>` : ''}
+        </div>
+        <a class="popup-link" href="${item.notionUrl}" target="_blank" rel="noopener">Open in Notion &rarr;</a>
+      `;
+
+      document.getElementById('popupOverlay').classList.add('active');
+    }
+
+    function showDayDetail(dateStr) {
+      const dayItems = getItemsForDate(dateStr);
+      const popup = document.getElementById('popup');
+
+      popup.innerHTML = `
+        <button class="popup-close" onclick="closePopup(event)">&times;</button>
+        <h3>${formatDisplayDate(dateStr)}</h3>
+        <div style="margin-top: 12px;">
+          ${dayItems.map(item => {
+            const categoryBadgeStyle = getCategoryBadgeStyle(item.category);
+            const statusClass = getStatusClass(item.status);
+            const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+            return `
+              <div style="padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;"
+                   onclick="showDetail('${item.id}')">
+                <span class="status-dot ${statusClass}"></span>
+                <strong>${prefix}${item.name}</strong>
+                <span class="popup-badge" style="${categoryBadgeStyle}; margin-left: 6px; font-size: 10px;">${item.type}</span>
+              </div>`;
+          }).join('')}
+        </div>
+      `;
+
+      document.getElementById('popupOverlay').classList.add('active');
+    }
+
+    function closePopup(e) {
+      if (e.target === document.getElementById('popupOverlay') || e.target.classList.contains('popup-close')) {
+        document.getElementById('popupOverlay').classList.remove('active');
+      }
+    }
+
+    // ---- Helpers ----
+    function formatDate(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function getStatusClass(status) {
+      switch (status) {
+        case 'Done': return 'done';
+        case 'In progress': return 'in-progress';
+        case 'Not started': return 'not-started';
+        case 'Backlog': return 'backlog';
+        default: return 'not-started';
+      }
+    }
+
+    function getCategoryBadgeStyle(category) {
+      const styles = {
+        'Event': 'background: var(--event-bg); color: #854d0e; border: 1px solid var(--event-border)',
+        'Campaign': 'background: var(--campaign-bg); color: #6b21a8; border: 1px solid var(--campaign-border)',
+        'Asset': 'background: var(--asset-bg); color: #92400e; border: 1px solid var(--asset-border)',
+        'Project': 'background: var(--project-bg); color: #9a3412; border: 1px solid var(--project-border)',
+        'PR & Comms': 'background: var(--pr-comms-bg); color: #9d174d; border: 1px solid var(--pr-comms-border)',
+      };
+      return styles[category] || 'background: #f3f4f6; color: #374151';
+    }
+
+    // Keyboard nav
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.getElementById('popupOverlay').classList.remove('active');
+      }
+      if (e.key === 'ArrowLeft') prevMonth();
+      if (e.key === 'ArrowRight') nextMonth();
+    });
+
+    // ---- Init ----
+    fetchActivities();
+  </script>
+</body>
+</html>
