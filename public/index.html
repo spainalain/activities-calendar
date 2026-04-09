@@ -15,22 +15,22 @@
       --today-border: #3b82f6;
       --hover: #f9fafb;
 
-      /* Category colors matching Notion */
-      --event: #eab308;
-      --event-bg: #fefce8;
-      --event-border: #facc15;
-      --campaign: #a855f7;
-      --campaign-bg: #faf5ff;
-      --campaign-border: #c084fc;
-      --asset: #92400e;
-      --asset-bg: #fef3c7;
-      --asset-border: #d97706;
-      --project: #ea580c;
-      --project-bg: #fff7ed;
-      --project-border: #fb923c;
-      --pr-comms: #ec4899;
-      --pr-comms-bg: #fdf2f8;
-      --pr-comms-border: #f472b6;
+      /* Category colors — vibrant and distinct */
+      --event: #d97706;
+      --event-bg: #fff3d0;
+      --event-border: #f59e0b;
+      --campaign: #7c3aed;
+      --campaign-bg: #ede9fe;
+      --campaign-border: #8b5cf6;
+      --asset: #0891b2;
+      --asset-bg: #e0f7fa;
+      --asset-border: #06b6d4;
+      --project: #dc2626;
+      --project-bg: #fee2e2;
+      --project-border: #ef4444;
+      --pr-comms: #c026d3;
+      --pr-comms-bg: #fae8ff;
+      --pr-comms-border: #d946ef;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -139,15 +139,15 @@
       border-radius: 50%;
     }
 
-    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #854d0e; }
+    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #92400e; }
     .filter-chip[data-category="Event"] .dot { background: var(--event); }
-    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #6b21a8; }
+    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #5b21b6; }
     .filter-chip[data-category="Campaign"] .dot { background: var(--campaign); }
-    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
+    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #0e7490; }
     .filter-chip[data-category="Asset"] .dot { background: var(--asset); }
-    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #9a3412; }
+    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #b91c1c; }
     .filter-chip[data-category="Project"] .dot { background: var(--project); }
-    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #9d174d; }
+    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #a21caf; }
     .filter-chip[data-category="PR & Comms"] .dot { background: var(--pr-comms); }
 
     /* Type filter pills */
@@ -204,6 +204,40 @@
       border-color: #3b82f6;
       background: #eff6ff;
       color: #1d4ed8;
+    }
+
+    /* Content info filters */
+    .content-filters {
+      display: flex;
+      gap: 6px;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+      align-items: center;
+    }
+
+    .content-filters label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .content-select {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+      max-width: 160px;
+    }
+
+    .content-select:focus {
+      outline: none;
+      border-color: #3b82f6;
     }
 
     /* Calendar Grid */
@@ -304,28 +338,39 @@
     .cal-item.action-item { font-weight: 400; }
 
     /* Category-specific item colors */
-    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #854d0e; }
-    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #6b21a8; }
-    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #92400e; }
-    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #9a3412; }
-    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #9d174d; }
+    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #92400e; }
+    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #5b21b6; }
+    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset); color: #0e7490; }
+    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #b91c1c; }
+    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #a21caf; }
 
-    /* Multi-day spanning items */
+    /* Multi-day spanning items — connected bar across days */
     .cal-item.span-start {
       border-radius: 4px 0 0 4px;
-      margin-right: 0;
+      margin-right: -4px;
+      padding-right: 8px;
+      position: relative;
+      z-index: 2;
     }
     .cal-item.span-middle {
       border-radius: 0;
-      margin-left: 0;
-      margin-right: 0;
+      margin-left: -4px;
+      margin-right: -4px;
       border-left: none;
+      color: transparent;
+      position: relative;
+      z-index: 1;
     }
+    .cal-item.span-middle .status-dot { visibility: hidden; }
     .cal-item.span-end {
       border-radius: 0 4px 4px 0;
-      margin-left: 0;
+      margin-left: -4px;
       border-left: none;
+      color: transparent;
+      position: relative;
+      z-index: 1;
     }
+    .cal-item.span-end .status-dot { visibility: hidden; }
 
     /* Status dot */
     .status-dot {
@@ -559,6 +604,20 @@
         <div class="status-pill" data-status="active" onclick="setStatusFilter('active')">Active</div>
         <div class="status-pill" data-status="done" onclick="setStatusFilter('done')">Done</div>
       </div>
+
+      <!-- Content information filters (Asset items only) -->
+      <div class="content-filters">
+        <label>Content:</label>
+        <select class="content-select" id="contentStatusFilter" onchange="renderCalendar()">
+          <option value="">All Statuses</option>
+        </select>
+        <select class="content-select" id="contentObjectiveFilter" onchange="renderCalendar()">
+          <option value="">All Objectives</option>
+        </select>
+        <select class="content-select" id="contentTrackFilter" onchange="renderCalendar()">
+          <option value="">All Tracks</option>
+        </select>
+      </div>
     </div>
 
     <div class="stats-bar" id="statsBar"></div>
@@ -593,6 +652,7 @@
         const json = await res.json();
         if (json.success) {
           activities = json.data;
+          populateContentFilters();
           updateStats();
           renderCalendar();
         } else {
@@ -601,6 +661,37 @@
       } catch (err) {
         showError('Could not connect to server. Make sure the server is running.');
       }
+    }
+
+    // Populate Content info filter dropdowns from actual data
+    function populateContentFilters() {
+      const statuses = new Set();
+      const objectives = new Set();
+      const tracks = new Set();
+
+      activities.forEach(a => {
+        if (a.contentStatus) statuses.add(a.contentStatus);
+        if (a.contentObjective) objectives.add(a.contentObjective);
+        if (a.contentTrack) tracks.add(a.contentTrack);
+      });
+
+      const fillSelect = (id, values) => {
+        const sel = document.getElementById(id);
+        const current = sel.value;
+        // Keep the "All" option, add sorted values
+        sel.innerHTML = sel.options[0].outerHTML;
+        [...values].sort().forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v;
+          sel.appendChild(opt);
+        });
+        sel.value = current; // preserve selection if still valid
+      };
+
+      fillSelect('contentStatusFilter', statuses);
+      fillSelect('contentObjectiveFilter', objectives);
+      fillSelect('contentTrackFilter', tracks);
     }
 
     function showError(msg) {
@@ -666,6 +757,20 @@
       // Status filter
       if (statusFilter === 'active' && item.status === 'Done') return false;
       if (statusFilter === 'done' && item.status !== 'Done') return false;
+
+      // Content info filters (only apply to Asset items)
+      const csFilter = document.getElementById('contentStatusFilter')?.value;
+      const coFilter = document.getElementById('contentObjectiveFilter')?.value;
+      const ctFilter = document.getElementById('contentTrackFilter')?.value;
+
+      if (csFilter || coFilter || ctFilter) {
+        if (item.category === 'Asset') {
+          if (csFilter && item.contentStatus !== csFilter) return false;
+          if (coFilter && item.contentObjective !== coFilter) return false;
+          if (ctFilter && item.contentTrack !== ctFilter) return false;
+        }
+        // Non-Asset items always pass content filters
+      }
 
       return true;
     }
@@ -733,38 +838,135 @@
           <div class="calendar-grid">
       `;
 
-      days.forEach(day => {
-        const dateStr = formatDate(day.date);
-        const isToday = day.date.getTime() === today.getTime();
-        const classes = ['calendar-day'];
-        if (day.otherMonth) classes.push('other-month');
-        if (isToday) classes.push('today');
+      // Process weeks for slot-based rendering
+      // This ensures multi-day spanning items stay on the same row across all days
+      for (let weekStart = 0; weekStart < days.length; weekStart += 7) {
+        const weekDays = days.slice(weekStart, weekStart + 7);
+        const weekDateStrs = weekDays.map(d => formatDate(d.date));
 
-        const dayItems = getItemsForDate(dateStr);
+        // Build items list for each day in this week
+        const weekDayItems = weekDateStrs.map(ds => getItemsForDate(ds));
 
-        html += `<div class="${classes.join(' ')}">`;
-        html += `<div class="day-number">${day.date.getDate()}</div>`;
+        // Identify spanning items that cross multiple days in this week
+        // and assign them fixed slot positions
+        const slotAssignments = {}; // itemId -> slot number
+        const daySlots = weekDateStrs.map(() => []); // for each day, array of {slot, item} or null
 
-        const visibleItems = dayItems.slice(0, MAX_ITEMS_PER_DAY);
-        const hiddenCount = dayItems.length - MAX_ITEMS_PER_DAY;
+        // First pass: find spanning items and assign slots
+        const spanningItems = [];
+        activities.forEach(item => {
+          if (item.type !== 'Parent - Event') return;
+          if (!passesFilters(item)) return;
+          const start = item.startDate?.start;
+          const end = item.endDate?.start;
+          if (!start || !end || start === end) return;
 
-        visibleItems.forEach(item => {
-          const typeClass = item.isParent ? 'parent' : item.isMilestone ? 'milestone' : 'action-item';
-          const statusClass = getStatusClass(item.status);
-          const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+          // Check if this item overlaps with this week
+          const weekFirst = weekDateStrs[0];
+          const weekLast = weekDateStrs[6];
+          if (end < weekFirst || start > weekLast) return;
 
-          html += `<div class="cal-item ${typeClass}" data-category="${item.category}"
-                        onclick="showDetail('${item.id}')" title="${item.name}">
-                    <span class="status-dot ${statusClass}"></span>${prefix}${item.name}
-                   </div>`;
+          // Find which days in this week the item spans
+          const dayIndices = [];
+          weekDateStrs.forEach((ds, i) => {
+            if (ds >= start && ds <= end) dayIndices.push(i);
+          });
+          if (dayIndices.length <= 1) return;
+
+          spanningItems.push({ item, dayIndices });
         });
 
-        if (hiddenCount > 0) {
-          html += `<div class="more-items" onclick="showDayDetail('${dateStr}')">+${hiddenCount} more</div>`;
-        }
+        // Sort spanning items by start date, then by length (longer first)
+        spanningItems.sort((a, b) => {
+          const aStart = a.item.startDate?.start || '';
+          const bStart = b.item.startDate?.start || '';
+          if (aStart !== bStart) return aStart.localeCompare(bStart);
+          return b.dayIndices.length - a.dayIndices.length;
+        });
 
-        html += `</div>`;
-      });
+        // Assign slots to spanning items
+        spanningItems.forEach(({ item, dayIndices }) => {
+          // Find the lowest slot that is free across all days this item spans
+          let slot = 0;
+          while (true) {
+            const conflict = dayIndices.some(di => daySlots[di][slot] != null);
+            if (!conflict) break;
+            slot++;
+          }
+          slotAssignments[item.id] = slot;
+          dayIndices.forEach(di => {
+            daySlots[di][slot] = item;
+          });
+        });
+
+        // Second pass: for each day, fill remaining slots with non-spanning items
+        weekDayItems.forEach((items, dayIdx) => {
+          const nonSpanning = items.filter(it => !(it.id in slotAssignments));
+          let slot = 0;
+          nonSpanning.forEach(item => {
+            // Find next free slot
+            while (daySlots[dayIdx][slot] != null) slot++;
+            daySlots[dayIdx][slot] = item;
+            slot++;
+          });
+        });
+
+        // Now render each day in this week using the slot layout
+        weekDays.forEach((day, dayIdx) => {
+          const dateStr = weekDateStrs[dayIdx];
+          const isToday = day.date.getTime() === today.getTime();
+          const classes = ['calendar-day'];
+          if (day.otherMonth) classes.push('other-month');
+          if (isToday) classes.push('today');
+
+          html += `<div class="${classes.join(' ')}">`;
+          html += `<div class="day-number">${day.date.getDate()}</div>`;
+
+          const slots = daySlots[dayIdx];
+          // Find max slot index used
+          const maxSlot = slots.length - 1;
+          let rendered = 0;
+
+          for (let s = 0; s <= Math.min(maxSlot, MAX_ITEMS_PER_DAY - 1); s++) {
+            const item = slots[s];
+            if (!item) {
+              // Empty slot — render a spacer to keep alignment
+              html += `<div class="cal-item" style="visibility:hidden;height:18px;margin-bottom:2px;">&nbsp;</div>`;
+              rendered++;
+              continue;
+            }
+
+            const typeClass = item.isParent ? 'parent' : item.isMilestone ? 'milestone' : 'action-item';
+            const statusClass = getStatusClass(item.status);
+            const prefix = item.isParent ? '' : item.isMilestone ? '\u25C7 ' : '\u2022 ';
+
+            // Determine span class for multi-day Parent-Event items
+            let spanClass = '';
+            if (item.id in slotAssignments) {
+              const start = item.startDate?.start;
+              const end = item.endDate?.start;
+              if (dateStr === start) spanClass = 'span-start';
+              else if (dateStr === end) spanClass = 'span-end';
+              else spanClass = 'span-middle';
+            }
+
+            html += `<div class="cal-item ${typeClass} ${spanClass}" data-category="${item.category}"
+                          onclick="showDetail('${item.id}')" title="${item.name}">
+                      <span class="status-dot ${statusClass}"></span>${prefix}${item.name}
+                     </div>`;
+            rendered++;
+          }
+
+          // Count items beyond visible slots
+          const totalItems = slots.filter(s => s != null).length;
+          const hiddenCount = totalItems - rendered;
+          if (hiddenCount > 0) {
+            html += `<div class="more-items" onclick="showDayDetail('${dateStr}')">+${hiddenCount} more</div>`;
+          }
+
+          html += `</div>`;
+        });
+      }
 
       html += '</div></div>';
 
@@ -860,6 +1062,25 @@
             <span class="popup-meta-value">${subItems.map(s => s.name).join(', ')}</span>
           </div>` : ''}
         </div>
+          ${(item.contentStatus || item.contentObjective || item.contentTrack) ? `
+          <h4 style="font-size: 14px; font-weight: 600; margin: 16px 0 8px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text);">Content Information</h4>
+          <div class="popup-meta" style="margin-bottom: 16px;">
+            ${item.contentStatus ? `
+            <div class="popup-meta-row">
+              <span class="popup-meta-label">Status</span>
+              <span class="popup-meta-value">${item.contentStatus}</span>
+            </div>` : ''}
+            ${item.contentObjective ? `
+            <div class="popup-meta-row">
+              <span class="popup-meta-label">Objective</span>
+              <span class="popup-meta-value">${item.contentObjective}</span>
+            </div>` : ''}
+            ${item.contentTrack ? `
+            <div class="popup-meta-row">
+              <span class="popup-meta-label">Track</span>
+              <span class="popup-meta-value">${item.contentTrack}</span>
+            </div>` : ''}
+          </div>` : ''}
         <a class="popup-link" href="${item.notionUrl}" target="_blank" rel="noopener">Open in Notion &rarr;</a>
       `;
 
@@ -921,11 +1142,11 @@
 
     function getCategoryBadgeStyle(category) {
       const styles = {
-        'Event': 'background: var(--event-bg); color: #854d0e; border: 1px solid var(--event-border)',
-        'Campaign': 'background: var(--campaign-bg); color: #6b21a8; border: 1px solid var(--campaign-border)',
-        'Asset': 'background: var(--asset-bg); color: #92400e; border: 1px solid var(--asset-border)',
-        'Project': 'background: var(--project-bg); color: #9a3412; border: 1px solid var(--project-border)',
-        'PR & Comms': 'background: var(--pr-comms-bg); color: #9d174d; border: 1px solid var(--pr-comms-border)',
+        'Event': 'background: var(--event-bg); color: #92400e; border: 1px solid var(--event-border)',
+        'Campaign': 'background: var(--campaign-bg); color: #5b21b6; border: 1px solid var(--campaign-border)',
+        'Asset': 'background: var(--asset-bg); color: #0e7490; border: 1px solid var(--asset-border)',
+        'Project': 'background: var(--project-bg); color: #b91c1c; border: 1px solid var(--project-border)',
+        'PR & Comms': 'background: var(--pr-comms-bg); color: #a21caf; border: 1px solid var(--pr-comms-border)',
       };
       return styles[category] || 'background: #f3f4f6; color: #374151';
     }
