@@ -646,20 +646,30 @@
     const MAX_ITEMS_PER_DAY = 4;
 
     // ---- Data fetching ----
-    async function fetchActivities() {
-      try {
-        const res = await fetch('/api/activities');
-        const json = await res.json();
-        if (json.success) {
-          activities = json.data;
-          populateContentFilters();
-          updateStats();
-          renderCalendar();
-        } else {
-          showError(json.error);
+    async function fetchActivities(retries = 3) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          document.getElementById('calendarContainer').innerHTML =
+            `<div class="loading"><div class="spinner"></div>Loading activities...${attempt > 1 ? ` (attempt ${attempt}/${retries})` : ''}</div>`;
+
+          const res = await fetch('/api/activities', { signal: AbortSignal.timeout(120000) });
+          const json = await res.json();
+          if (json.success) {
+            activities = json.data;
+            populateContentFilters();
+            updateStats();
+            renderCalendar();
+            return;
+          } else {
+            if (attempt === retries) showError(json.error);
+          }
+        } catch (err) {
+          if (attempt === retries) {
+            showError('Could not connect to server. It may be waking up — try refreshing in 30 seconds.');
+          }
+          // Wait before retrying (server may be cold-starting)
+          await new Promise(r => setTimeout(r, 5000));
         }
-      } catch (err) {
-        showError('Could not connect to server. Make sure the server is running.');
       }
     }
 
