@@ -147,10 +147,17 @@ function transformPage(page) {
   };
 }
 
-// API endpoint: get all activities for calendar
-app.get('/api/activities', async (req, res) => {
+// ---- In-memory cache ----
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let cachedData = null;
+let cacheTimestamp = 0;
+let isFetching = false;
+
+async function refreshCache() {
+  if (isFetching) return; // prevent overlapping fetches
+  isFetching = true;
   try {
-    console.log('Fetching all activities...');
+    console.log('Refreshing cache from Notion...');
     const pages = await getAllActivities();
     const activities = pages.map(transformPage);
     console.log(`Found ${activities.length} activities total.`);
@@ -171,11 +178,44 @@ app.get('/api/activities', async (req, res) => {
     const withContent = assetActivities.filter(a => a.contentStatus || a.contentObjective || a.contentTrack);
     console.log(`Successfully fetched content info for ${withContent.length}/${assetActivities.length} Asset items.`);
 
-    res.json({ success: true, data: activities, count: activities.length });
+    cachedData = { success: true, data: activities, count: activities.length };
+    cacheTimestamp = Date.now();
+    console.log('Cache refreshed at', new Date().toISOString());
   } catch (error) {
-    console.error('Error fetching activities:', error);
+    console.error('Error refreshing cache:', error);
+    // Keep old cache if refresh fails
+  } finally {
+    isFetching = false;
+  }
+}
+
+// API endpoint: get all activities for calendar (serves from cache)
+app.get('/api/activities', async (req, res) => {
+  try {
+    const cacheAge = Date.now() - cacheTimestamp;
+
+    if (!cachedData) {
+      // No cache yet — fetch now and wait
+      await refreshCache();
+    } else if (cacheAge > CACHE_TTL_MS) {
+      // Cache is stale — serve old data but trigger refresh in background
+      refreshCache();
+    }
+
+    if (cachedData) {
+      res.json(cachedData);
+    } else {
+      res.status(500).json({ success: false, error: 'Failed to fetch activities from Notion.' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// Health check endpoint (for uptime monitors)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', cacheAge: Math.round((Date.now() - cacheTimestamp) / 1000) + 's' });
 });
 
 // Serve the calendar HTML
@@ -186,4 +226,8 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Activities Calendar running at http://localhost:${PORT}`);
+  // Pre-fill cache on startup
+  refreshCache();
+  // Refresh cache every 5 minutes automatically
+  setInterval(refreshCache, CACHE_TTL_MS);
 });
