@@ -107,12 +107,35 @@
       background: #2563eb !important;
     }
 
-    /* Filters */
-    .filters {
+    /* Filter rows — stacked cleanly */
+    .filter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .filter-row {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
       align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-row-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 70px;
+    }
+
+    .filter-row-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
     }
 
     .filter-chip {
@@ -150,16 +173,8 @@
     .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #a21caf; }
     .filter-chip[data-category="PR & Comms"] .dot { background: var(--pr-comms); }
 
-    /* Type filter pills */
-    .type-filters {
-      display: flex;
-      gap: 6px;
-      margin-left: 12px;
-      padding-left: 12px;
-      border-left: 1px solid var(--border);
-    }
-
-    .type-pill {
+    /* Pill filters (type, status) */
+    .pill {
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 12px;
@@ -172,59 +187,20 @@
       user-select: none;
     }
 
-    .type-pill.active {
+    .pill.active {
       background: var(--text);
       color: white;
       border-color: var(--text);
     }
 
-    /* Status filter */
-    .status-filters {
-      display: flex;
-      gap: 6px;
-      margin-left: 12px;
-      padding-left: 12px;
-      border-left: 1px solid var(--border);
-    }
-
-    .status-pill {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1.5px solid var(--border);
-      background: white;
-      color: var(--text-secondary);
-      transition: all 0.15s;
-      user-select: none;
-    }
-
-    .status-pill.active {
+    .pill.status-active {
       border-color: #3b82f6;
       background: #eff6ff;
       color: #1d4ed8;
     }
 
-    /* Content info filters */
-    .content-filters {
-      display: flex;
-      gap: 6px;
-      margin-left: 12px;
-      padding-left: 12px;
-      border-left: 1px solid var(--border);
-      align-items: center;
-    }
-
-    .content-filters label {
-      font-size: 11px;
-      color: var(--text-secondary);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .content-select {
+    /* Dropdown filters */
+    .filter-select {
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 12px;
@@ -232,10 +208,10 @@
       background: white;
       color: var(--text);
       cursor: pointer;
-      max-width: 160px;
+      max-width: 200px;
     }
 
-    .content-select:focus {
+    .filter-select:focus {
       outline: none;
       border-color: #3b82f6;
     }
@@ -634,53 +610,7 @@
       </div>
     </div>
 
-    <div class="filters" id="filters">
-      <!-- Category filters -->
-      <div class="filter-chip" data-category="Event" onclick="toggleCategory('Event')">
-        <span class="dot"></span> Event
-      </div>
-      <div class="filter-chip" data-category="Campaign" onclick="toggleCategory('Campaign')">
-        <span class="dot"></span> Campaign
-      </div>
-      <div class="filter-chip" data-category="Asset" onclick="toggleCategory('Asset')">
-        <span class="dot"></span> Asset
-      </div>
-      <div class="filter-chip" data-category="Project" onclick="toggleCategory('Project')">
-        <span class="dot"></span> Project
-      </div>
-      <div class="filter-chip" data-category="PR & Comms" onclick="toggleCategory('PR & Comms')">
-        <span class="dot"></span> PR & Comms
-      </div>
-
-      <!-- Type filters -->
-      <div class="type-filters">
-        <div class="type-pill active" data-type="parent" onclick="toggleType('parent')">Parent</div>
-        <div class="type-pill active" data-type="milestone" onclick="toggleType('milestone')">Milestone</div>
-        <div class="type-pill active" data-type="action" onclick="toggleType('action')">Action Item</div>
-      </div>
-
-      <!-- Status filters -->
-      <div class="status-filters">
-        <div class="status-pill active" data-status="all" onclick="setStatusFilter('all')">All</div>
-        <div class="status-pill" data-status="active" onclick="setStatusFilter('active')">Active</div>
-        <div class="status-pill" data-status="done" onclick="setStatusFilter('done')">Done</div>
-      </div>
-
-      <!-- Content information filters (Asset items only) -->
-      <div class="content-filters">
-        <label>Content:</label>
-        <select class="content-select" id="contentStatusFilter" onchange="renderCalendar()">
-          <option value="">All Statuses</option>
-        </select>
-        <select class="content-select" id="contentObjectiveFilter" onchange="renderCalendar()">
-          <option value="">All Objectives</option>
-        </select>
-        <select class="content-select" id="contentTrackFilter" onchange="renderCalendar()">
-          <option value="">All Tracks</option>
-        </select>
-      </div>
-    </div>
-
+    <!-- Views bar -->
     <div class="views-bar" id="viewsBar">
       <label>Views:</label>
       <button class="view-btn active" onclick="loadView('all')">All Activities</button>
@@ -688,6 +618,64 @@
       <button class="view-btn" onclick="loadView('assets-only')">Assets Only</button>
       <button class="view-btn" onclick="loadView('in-progress')">In Progress</button>
       <button class="view-btn save-btn" onclick="saveCurrentView()">+ Save Current View</button>
+    </div>
+
+    <!-- Filters — organized in rows -->
+    <div class="filter-section" id="filters">
+      <!-- Row 1: Category + Type + Status -->
+      <div class="filter-row">
+        <span class="filter-row-label">Category</span>
+        <div class="filter-chip" data-category="Event" onclick="toggleCategory('Event')">
+          <span class="dot"></span> Event
+        </div>
+        <div class="filter-chip" data-category="Campaign" onclick="toggleCategory('Campaign')">
+          <span class="dot"></span> Campaign
+        </div>
+        <div class="filter-chip" data-category="Asset" onclick="toggleCategory('Asset')">
+          <span class="dot"></span> Asset
+        </div>
+        <div class="filter-chip" data-category="Project" onclick="toggleCategory('Project')">
+          <span class="dot"></span> Project
+        </div>
+        <div class="filter-chip" data-category="PR & Comms" onclick="toggleCategory('PR & Comms')">
+          <span class="dot"></span> PR & Comms
+        </div>
+
+        <div class="filter-row-divider"></div>
+        <span class="filter-row-label" style="min-width:auto;">Type</span>
+        <div class="pill active" data-type="parent" onclick="toggleType('parent')">Parent</div>
+        <div class="pill active" data-type="milestone" onclick="toggleType('milestone')">Milestone</div>
+        <div class="pill active" data-type="action" onclick="toggleType('action')">Action Item</div>
+
+        <div class="filter-row-divider"></div>
+        <span class="filter-row-label" style="min-width:auto;">Status</span>
+        <div class="pill status-active" data-status="all" onclick="setStatusFilter('all')">All</div>
+        <div class="pill" data-status="active" onclick="setStatusFilter('active')">Active</div>
+        <div class="pill" data-status="done" onclick="setStatusFilter('done')">Done</div>
+      </div>
+
+      <!-- Row 2: Owner + Initiative + Content filters -->
+      <div class="filter-row">
+        <span class="filter-row-label">Filters</span>
+        <select class="filter-select" id="ownerFilter" onchange="renderCalendar()">
+          <option value="">All Owners</option>
+        </select>
+        <select class="filter-select" id="initiativeFilter" onchange="renderCalendar()">
+          <option value="">All Initiatives</option>
+        </select>
+
+        <div class="filter-row-divider"></div>
+        <span class="filter-row-label" style="min-width:auto;">Content</span>
+        <select class="filter-select" id="contentStatusFilter" onchange="renderCalendar()">
+          <option value="">All Statuses</option>
+        </select>
+        <select class="filter-select" id="contentObjectiveFilter" onchange="renderCalendar()">
+          <option value="">All Objectives</option>
+        </select>
+        <select class="filter-select" id="contentTrackFilter" onchange="renderCalendar()">
+          <option value="">All Tracks</option>
+        </select>
+      </div>
     </div>
 
     <div class="stats-bar" id="statsBar"></div>
@@ -723,28 +711,28 @@
         name: 'All Activities',
         categories: ['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms'],
         types: ['parent', 'milestone', 'action'],
-        status: 'all',
+        status: 'all', owner: '', initiative: '',
         contentStatus: '', contentObjective: '', contentTrack: ''
       },
       'events-only': {
         name: 'Events Only',
         categories: ['Event'],
         types: ['parent', 'milestone', 'action'],
-        status: 'all',
+        status: 'all', owner: '', initiative: '',
         contentStatus: '', contentObjective: '', contentTrack: ''
       },
       'assets-only': {
         name: 'Assets Only',
         categories: ['Asset'],
         types: ['parent', 'milestone', 'action'],
-        status: 'all',
+        status: 'all', owner: '', initiative: '',
         contentStatus: '', contentObjective: '', contentTrack: ''
       },
       'in-progress': {
         name: 'In Progress',
         categories: ['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms'],
         types: ['parent', 'milestone', 'action'],
-        status: 'active',
+        status: 'active', owner: '', initiative: '',
         contentStatus: '', contentObjective: '', contentTrack: ''
       }
     };
@@ -758,6 +746,8 @@
         categories: [...activeCategories],
         types: [...activeTypes],
         status: statusFilter,
+        owner: document.getElementById('ownerFilter')?.value || '',
+        initiative: document.getElementById('initiativeFilter')?.value || '',
         contentStatus: document.getElementById('contentStatusFilter')?.value || '',
         contentObjective: document.getElementById('contentObjectiveFilter')?.value || '',
         contentTrack: document.getElementById('contentTrackFilter')?.value || ''
@@ -774,14 +764,20 @@
 
       // Types
       activeTypes = new Set(state.types);
-      document.querySelectorAll('.type-pill').forEach(pill => {
+      document.querySelectorAll('.pill[data-type]').forEach(pill => {
         pill.classList.toggle('active', activeTypes.has(pill.dataset.type));
       });
 
       // Status
       statusFilter = state.status;
-      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
-      document.querySelector(`.status-pill[data-status="${statusFilter}"]`)?.classList.add('active');
+      document.querySelectorAll('.pill[data-status]').forEach(p => p.classList.remove('status-active'));
+      document.querySelector(`.pill[data-status="${statusFilter}"]`)?.classList.add('status-active');
+
+      // Owner & Initiative
+      if (document.getElementById('ownerFilter'))
+        document.getElementById('ownerFilter').value = state.owner || '';
+      if (document.getElementById('initiativeFilter'))
+        document.getElementById('initiativeFilter').value = state.initiative || '';
 
       // Content filters
       if (document.getElementById('contentStatusFilter'))
@@ -910,18 +906,18 @@
 
     // Populate Content info filter dropdowns from schema options (all possible values)
     function populateContentFilters() {
-      const fillSelect = (id, schemaKey) => {
+      const fillSelect = (id, schemaKey, directValues) => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const current = sel.value;
         const firstOption = sel.options[0].outerHTML; // "All ..." option
 
         let values;
-        if (contentOptions && contentOptions[schemaKey]) {
-          // Use all schema options from the server
+        if (directValues) {
+          values = directValues;
+        } else if (contentOptions && contentOptions[schemaKey]) {
           values = contentOptions[schemaKey];
         } else {
-          // Fallback: extract from data
           const valSet = new Set();
           activities.forEach(a => { if (a[schemaKey]) valSet.add(a[schemaKey]); });
           values = [...valSet].sort();
@@ -940,6 +936,16 @@
       fillSelect('contentStatusFilter', 'contentStatus');
       fillSelect('contentObjectiveFilter', 'contentObjective');
       fillSelect('contentTrackFilter', 'contentTrack');
+
+      // Populate Owner and Initiative from activity data
+      const owners = new Set();
+      const initiatives = new Set();
+      activities.forEach(a => {
+        if (a.owner) a.owner.forEach(o => owners.add(o));
+        if (a.strategicInitiative) initiatives.add(a.strategicInitiative);
+      });
+      fillSelect('ownerFilter', 'owner', [...owners].sort());
+      fillSelect('initiativeFilter', 'initiative', [...initiatives].sort());
     }
 
     function showError(msg) {
@@ -975,7 +981,7 @@
     }
 
     function toggleType(type) {
-      const pill = document.querySelector(`.type-pill[data-type="${type}"]`);
+      const pill = document.querySelector(`.pill[data-type="${type}"]`);
       if (activeTypes.has(type)) {
         activeTypes.delete(type);
         pill.classList.remove('active');
@@ -988,8 +994,8 @@
 
     function setStatusFilter(filter) {
       statusFilter = filter;
-      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
-      document.querySelector(`.status-pill[data-status="${filter}"]`).classList.add('active');
+      document.querySelectorAll('.pill[data-status]').forEach(p => p.classList.remove('status-active'));
+      document.querySelector(`.pill[data-status="${filter}"]`)?.classList.add('status-active');
       renderCalendar();
     }
 
@@ -1006,6 +1012,14 @@
       if (statusFilter === 'active' && item.status === 'Done') return false;
       if (statusFilter === 'done' && item.status !== 'Done') return false;
 
+      // Owner filter
+      const ownerFilter = document.getElementById('ownerFilter')?.value;
+      if (ownerFilter && (!item.owner || !item.owner.includes(ownerFilter))) return false;
+
+      // Initiative filter
+      const initFilter = document.getElementById('initiativeFilter')?.value;
+      if (initFilter && item.strategicInitiative !== initFilter) return false;
+
       // Content info filters (only apply to Asset items)
       const csFilter = document.getElementById('contentStatusFilter')?.value;
       const coFilter = document.getElementById('contentObjectiveFilter')?.value;
@@ -1017,7 +1031,6 @@
           if (coFilter && item.contentObjective !== coFilter) return false;
           if (ctFilter && item.contentTrack !== ctFilter) return false;
         }
-        // Non-Asset items always pass content filters
       }
 
       return true;
