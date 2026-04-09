@@ -147,6 +147,18 @@ function transformPage(page) {
   };
 }
 
+// Debug endpoint to check env vars (remove after setup)
+app.get('/api/debug', (req, res) => {
+  const key = process.env.NOTION_API_KEY || '';
+  res.json({
+    keyLength: key.length,
+    keyPrefix: key.substring(0, 8),
+    keySuffix: key.substring(key.length - 4),
+    hasWhitespace: key !== key.trim(),
+    dbId: process.env.NOTION_DATABASE_ID || 'NOT SET'
+  });
+});
+
 // API endpoint: get all activities for calendar
 app.get('/api/activities', async (req, res) => {
   try {
