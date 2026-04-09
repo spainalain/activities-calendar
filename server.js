@@ -178,7 +178,30 @@ async function refreshCache() {
     const withContent = assetActivities.filter(a => a.contentStatus || a.contentObjective || a.contentTrack);
     console.log(`Successfully fetched content info for ${withContent.length}/${assetActivities.length} Asset items.`);
 
-    cachedData = { success: true, data: activities, count: activities.length };
+    cachedData = {
+      success: true,
+      data: activities,
+      count: activities.length,
+      // All possible Content information options (from Notion schema)
+      contentOptions: {
+        contentStatus: [
+          '1 - Intake', '2 - Triage', '3 - Outline', '4 - Outline check',
+          '5 - Draft', '6 - Tech edit', '7- Editorial', '8 - Editorial check',
+          '9 - Marketing approval', '10 - Leadership approval', '11 - Legal approval',
+          '12 - NVIDIA approval', '13 - CMS prep', '14 - Approval',
+          'Published', 'In-audit', 'Cancelled'
+        ],
+        contentObjective: [
+          'Marketing day-to-day', 'ClusterMax Gold+', 'Differentiate Lambda', "Prove we're legit"
+        ],
+        contentTrack: [
+          'Marketing day-to-day', 'We are AI people', 'We have a performance edge',
+          'ClusterMax future', 'ClusterMax response',
+          'We have feature sough out by enterprises', 'We have feature sough out by SI',
+          'Customer stories', 'Research friendliness', '1st to novelty'
+        ]
+      }
+    };
     cacheTimestamp = Date.now();
     console.log('Cache refreshed at', new Date().toISOString());
   } catch (error) {

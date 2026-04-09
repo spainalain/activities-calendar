@@ -550,6 +550,67 @@
       color: var(--text);
     }
 
+    /* Saved views / presets bar */
+    .views-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .views-bar label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .view-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .view-btn:hover {
+      background: var(--hover);
+    }
+
+    .view-btn.active {
+      background: #1a1a1a;
+      color: white;
+      border-color: #1a1a1a;
+    }
+
+    .view-btn.save-btn {
+      border-style: dashed;
+      color: var(--text-secondary);
+    }
+
+    .view-btn.save-btn:hover {
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    .view-btn.delete-btn {
+      font-size: 10px;
+      padding: 2px 6px;
+      color: #dc2626;
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .view-btn.delete-btn:hover {
+      background: #fee2e2;
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       .calendar-day { min-height: 80px; }
@@ -620,6 +681,15 @@
       </div>
     </div>
 
+    <div class="views-bar" id="viewsBar">
+      <label>Views:</label>
+      <button class="view-btn active" onclick="loadView('all')">All Activities</button>
+      <button class="view-btn" onclick="loadView('events-only')">Events Only</button>
+      <button class="view-btn" onclick="loadView('assets-only')">Assets Only</button>
+      <button class="view-btn" onclick="loadView('in-progress')">In Progress</button>
+      <button class="view-btn save-btn" onclick="saveCurrentView()">+ Save Current View</button>
+    </div>
+
     <div class="stats-bar" id="statsBar"></div>
 
     <div id="calendarContainer">
@@ -639,11 +709,174 @@
     // ---- State ----
     let currentDate = new Date();
     let activities = [];
+    let contentOptions = null; // schema options from server
     let activeCategories = new Set(['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms']);
     let activeTypes = new Set(['parent', 'milestone', 'action']);
     let statusFilter = 'all';
+    let activeViewName = 'all';
 
     const MAX_ITEMS_PER_DAY = 4;
+
+    // ---- Built-in view presets ----
+    const builtInViews = {
+      'all': {
+        name: 'All Activities',
+        categories: ['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms'],
+        types: ['parent', 'milestone', 'action'],
+        status: 'all',
+        contentStatus: '', contentObjective: '', contentTrack: ''
+      },
+      'events-only': {
+        name: 'Events Only',
+        categories: ['Event'],
+        types: ['parent', 'milestone', 'action'],
+        status: 'all',
+        contentStatus: '', contentObjective: '', contentTrack: ''
+      },
+      'assets-only': {
+        name: 'Assets Only',
+        categories: ['Asset'],
+        types: ['parent', 'milestone', 'action'],
+        status: 'all',
+        contentStatus: '', contentObjective: '', contentTrack: ''
+      },
+      'in-progress': {
+        name: 'In Progress',
+        categories: ['Event', 'Campaign', 'Asset', 'Project', 'PR & Comms'],
+        types: ['parent', 'milestone', 'action'],
+        status: 'active',
+        contentStatus: '', contentObjective: '', contentTrack: ''
+      }
+    };
+
+    // Custom saved views (loaded from URL hash)
+    let customViews = {};
+
+    // ---- View / preset management ----
+    function getCurrentFilterState() {
+      return {
+        categories: [...activeCategories],
+        types: [...activeTypes],
+        status: statusFilter,
+        contentStatus: document.getElementById('contentStatusFilter')?.value || '',
+        contentObjective: document.getElementById('contentObjectiveFilter')?.value || '',
+        contentTrack: document.getElementById('contentTrackFilter')?.value || ''
+      };
+    }
+
+    function applyFilterState(state) {
+      // Categories
+      activeCategories = new Set(state.categories);
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        const cat = chip.dataset.category;
+        chip.classList.toggle('inactive', !activeCategories.has(cat));
+      });
+
+      // Types
+      activeTypes = new Set(state.types);
+      document.querySelectorAll('.type-pill').forEach(pill => {
+        pill.classList.toggle('active', activeTypes.has(pill.dataset.type));
+      });
+
+      // Status
+      statusFilter = state.status;
+      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.status-pill[data-status="${statusFilter}"]`)?.classList.add('active');
+
+      // Content filters
+      if (document.getElementById('contentStatusFilter'))
+        document.getElementById('contentStatusFilter').value = state.contentStatus || '';
+      if (document.getElementById('contentObjectiveFilter'))
+        document.getElementById('contentObjectiveFilter').value = state.contentObjective || '';
+      if (document.getElementById('contentTrackFilter'))
+        document.getElementById('contentTrackFilter').value = state.contentTrack || '';
+
+      renderCalendar();
+    }
+
+    function loadView(viewName) {
+      const view = builtInViews[viewName] || customViews[viewName];
+      if (!view) return;
+
+      activeViewName = viewName;
+      applyFilterState(view);
+      updateViewButtons();
+    }
+
+    function updateViewButtons() {
+      document.querySelectorAll('.view-btn:not(.save-btn)').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const activeBtn = document.querySelector(`.view-btn[onclick="loadView('${activeViewName}')"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function saveCurrentView() {
+      const name = prompt('Name this view:');
+      if (!name || !name.trim()) return;
+
+      const key = 'custom-' + name.trim().toLowerCase().replace(/\s+/g, '-');
+      const state = getCurrentFilterState();
+      state.name = name.trim();
+      customViews[key] = state;
+      activeViewName = key;
+
+      saveCustomViewsToHash();
+      renderViewsBar();
+    }
+
+    function deleteCustomView(key, event) {
+      event.stopPropagation();
+      delete customViews[key];
+      if (activeViewName === key) {
+        activeViewName = 'all';
+        loadView('all');
+      }
+      saveCustomViewsToHash();
+      renderViewsBar();
+    }
+
+    function saveCustomViewsToHash() {
+      if (Object.keys(customViews).length > 0) {
+        const encoded = btoa(JSON.stringify(customViews));
+        window.location.hash = 'views=' + encoded;
+      } else {
+        window.location.hash = '';
+      }
+    }
+
+    function loadCustomViewsFromHash() {
+      const hash = window.location.hash.slice(1);
+      if (hash.startsWith('views=')) {
+        try {
+          customViews = JSON.parse(atob(hash.slice(6)));
+        } catch (e) {
+          customViews = {};
+        }
+      }
+    }
+
+    function renderViewsBar() {
+      const bar = document.getElementById('viewsBar');
+      let html = '<label>Views:</label>';
+
+      // Built-in views
+      for (const [key, view] of Object.entries(builtInViews)) {
+        const active = activeViewName === key ? 'active' : '';
+        html += `<button class="view-btn ${active}" onclick="loadView('${key}')">${view.name}</button>`;
+      }
+
+      // Custom views
+      for (const [key, view] of Object.entries(customViews)) {
+        const active = activeViewName === key ? 'active' : '';
+        html += `<button class="view-btn ${active}" onclick="loadView('${key}')">${view.name}
+                   <span class="view-btn delete-btn" onclick="deleteCustomView('${key}', event)">&times;</span>
+                 </button>`;
+      }
+
+      html += '<button class="view-btn save-btn" onclick="saveCurrentView()">+ Save Current View</button>';
+      bar.innerHTML = html;
+    }
 
     // ---- Data fetching ----
     async function fetchActivities(retries = 3) {
@@ -656,8 +889,11 @@
           const json = await res.json();
           if (json.success) {
             activities = json.data;
+            contentOptions = json.contentOptions || null;
             populateContentFilters();
             updateStats();
+            loadCustomViewsFromHash();
+            renderViewsBar();
             renderCalendar();
             return;
           } else {
@@ -667,41 +903,43 @@
           if (attempt === retries) {
             showError('Could not connect to server. It may be waking up — try refreshing in 30 seconds.');
           }
-          // Wait before retrying (server may be cold-starting)
           await new Promise(r => setTimeout(r, 5000));
         }
       }
     }
 
-    // Populate Content info filter dropdowns from actual data
+    // Populate Content info filter dropdowns from schema options (all possible values)
     function populateContentFilters() {
-      const statuses = new Set();
-      const objectives = new Set();
-      const tracks = new Set();
-
-      activities.forEach(a => {
-        if (a.contentStatus) statuses.add(a.contentStatus);
-        if (a.contentObjective) objectives.add(a.contentObjective);
-        if (a.contentTrack) tracks.add(a.contentTrack);
-      });
-
-      const fillSelect = (id, values) => {
+      const fillSelect = (id, schemaKey) => {
         const sel = document.getElementById(id);
+        if (!sel) return;
         const current = sel.value;
-        // Keep the "All" option, add sorted values
-        sel.innerHTML = sel.options[0].outerHTML;
-        [...values].sort().forEach(v => {
+        const firstOption = sel.options[0].outerHTML; // "All ..." option
+
+        let values;
+        if (contentOptions && contentOptions[schemaKey]) {
+          // Use all schema options from the server
+          values = contentOptions[schemaKey];
+        } else {
+          // Fallback: extract from data
+          const valSet = new Set();
+          activities.forEach(a => { if (a[schemaKey]) valSet.add(a[schemaKey]); });
+          values = [...valSet].sort();
+        }
+
+        sel.innerHTML = firstOption;
+        values.forEach(v => {
           const opt = document.createElement('option');
           opt.value = v;
           opt.textContent = v;
           sel.appendChild(opt);
         });
-        sel.value = current; // preserve selection if still valid
+        sel.value = current;
       };
 
-      fillSelect('contentStatusFilter', statuses);
-      fillSelect('contentObjectiveFilter', objectives);
-      fillSelect('contentTrackFilter', tracks);
+      fillSelect('contentStatusFilter', 'contentStatus');
+      fillSelect('contentObjectiveFilter', 'contentObjective');
+      fillSelect('contentTrackFilter', 'contentTrack');
     }
 
     function showError(msg) {
