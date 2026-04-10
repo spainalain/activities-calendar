@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -609,6 +609,142 @@
       background: var(--project-bg);
     }
 
+    /* ---- Dark Mode (Lambda Terminal theme) ---- */
+    [data-theme="dark"] {
+      --bg: #0B0B0B;
+      --text: #E7E6D9;
+      --text-secondary: #a8a793;
+      --border: #2a2a28;
+      --border-light: #161614;
+      --today-bg: #1e1545;
+      --today-border: var(--ultraviolet);
+      --hover: #1c1c1a;
+
+      /* Category colors — brighter for dark backgrounds */
+      --event: #f0a030;
+      --event-bg: #2a1e08;
+      --event-border: #c47a10;
+      --campaign: #8b6cf7;
+      --campaign-bg: #1a1230;
+      --campaign-border: #6236F4;
+      --asset: #20d4cc;
+      --asset-bg: #081e1d;
+      --asset-border: #00a59e;
+      --project: #ff4444;
+      --project-bg: #2a0808;
+      --project-border: #cc0000;
+      --pr-comms: #e850e0;
+      --pr-comms-bg: #280828;
+      --pr-comms-border: #b800b0;
+    }
+
+    [data-theme="dark"] .pill {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .pill.active {
+      background: var(--shell);
+      color: var(--terminal);
+      border-color: var(--shell);
+    }
+
+    [data-theme="dark"] .pill.status-active {
+      background: #1a1230;
+      border-color: var(--ultraviolet);
+      color: #a78bfa;
+    }
+
+    [data-theme="dark"] .filter-select {
+      background: #161614;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    [data-theme="dark"] .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #f0a030; }
+    [data-theme="dark"] .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #a78bfa; }
+    [data-theme="dark"] .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #20d4cc; }
+    [data-theme="dark"] .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #ff6666; }
+    [data-theme="dark"] .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #e850e0; }
+
+    [data-theme="dark"] .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #f0a030; }
+    [data-theme="dark"] .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #a78bfa; }
+    [data-theme="dark"] .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset); color: #20d4cc; }
+    [data-theme="dark"] .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #ff6666; }
+    [data-theme="dark"] .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #e850e0; }
+
+    [data-theme="dark"] .calendar-day.other-month .day-number { color: #3a3a35; }
+
+    [data-theme="dark"] .view-btn {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    [data-theme="dark"] .view-btn.active {
+      background: var(--shell);
+      color: var(--terminal);
+      border-color: var(--shell);
+    }
+
+    [data-theme="dark"] .view-btn.save-btn {
+      color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .popup {
+      background: #161614;
+      border: 1px solid var(--border);
+    }
+
+    [data-theme="dark"] .popup-overlay {
+      background: rgba(0,0,0,0.6);
+    }
+
+    [data-theme="dark"] .popup-link {
+      background: var(--shell);
+      color: var(--terminal);
+    }
+
+    [data-theme="dark"] .popup-link:hover {
+      background: var(--ultraviolet);
+      color: white;
+    }
+
+    [data-theme="dark"] .status-dot.not-started { background: #4a4a42; }
+    [data-theme="dark"] .status-dot.backlog { background: #5a5a50; }
+    [data-theme="dark"] .status-dot.done { background: #22c55e; }
+
+    [data-theme="dark"] .error {
+      background: var(--project-bg);
+      color: #ff6666;
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover);
+    }
+
+    .theme-toggle .theme-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       .calendar-day { min-height: 80px; }
@@ -630,6 +766,10 @@
           <button class="today-btn" onclick="goToday()">Today</button>
         </div>
       </div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <span class="theme-icon" id="themeIcon">&#9788;</span>
+        <span id="themeLabel">Light</span>
+      </button>
     </div>
 
     <!-- Views bar -->
@@ -1424,14 +1564,21 @@
     }
 
     function getCategoryBadgeStyle(category) {
-      const styles = {
-        'Event': 'background: var(--event-bg); color: #92400e; border: 1px solid var(--event-border)',
-        'Campaign': 'background: var(--campaign-bg); color: #5b21b6; border: 1px solid var(--campaign-border)',
-        'Asset': 'background: var(--asset-bg); color: #0e7490; border: 1px solid var(--asset-border)',
-        'Project': 'background: var(--project-bg); color: #b91c1c; border: 1px solid var(--project-border)',
-        'PR & Comms': 'background: var(--pr-comms-bg); color: #a21caf; border: 1px solid var(--pr-comms-border)',
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const styles = isDark ? {
+        'Event': 'background: var(--event-bg); color: #f0a030; border: 1px solid var(--event-border)',
+        'Campaign': 'background: var(--campaign-bg); color: #a78bfa; border: 1px solid var(--campaign-border)',
+        'Asset': 'background: var(--asset-bg); color: #20d4cc; border: 1px solid var(--asset-border)',
+        'Project': 'background: var(--project-bg); color: #ff6666; border: 1px solid var(--project-border)',
+        'PR & Comms': 'background: var(--pr-comms-bg); color: #e850e0; border: 1px solid var(--pr-comms-border)',
+      } : {
+        'Event': 'background: var(--event-bg); color: #8a5000; border: 1px solid var(--event-border)',
+        'Campaign': 'background: var(--campaign-bg); color: #4a22c4; border: 1px solid var(--campaign-border)',
+        'Asset': 'background: var(--asset-bg); color: #007a77; border: 1px solid var(--asset-border)',
+        'Project': 'background: var(--project-bg); color: #b80000; border: 1px solid var(--project-border)',
+        'PR & Comms': 'background: var(--pr-comms-bg); color: #9a0093; border: 1px solid var(--pr-comms-border)',
       };
-      return styles[category] || 'background: #f3f4f6; color: #374151';
+      return styles[category] || (isDark ? 'background: #1c1c1a; color: #a8a793' : 'background: #f3f4f6; color: #374151');
     }
 
     // Keyboard nav
@@ -1442,6 +1589,37 @@
       if (e.key === 'ArrowLeft') prevMonth();
       if (e.key === 'ArrowRight') nextMonth();
     });
+
+    // ---- Theme toggle ----
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeButton(next);
+      // Re-render to update badge styles in popups
+      if (activities.length > 0) renderCalendar();
+    }
+
+    function updateThemeButton(theme) {
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (theme === 'dark') {
+        icon.innerHTML = '&#9788;'; // sun
+        label.textContent = 'Light';
+      } else {
+        icon.innerHTML = '&#9790;'; // moon
+        label.textContent = 'Dark';
+      }
+    }
+
+    // Apply saved theme preference (default: dark)
+    (function initTheme() {
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeButton(saved);
+    })();
 
     // ---- Init ----
     fetchActivities();
