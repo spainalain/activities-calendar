@@ -4,39 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Activities Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #1a1a1a;
-      --text-secondary: #6b7280;
-      --border: #e5e7eb;
-      --border-light: #f3f4f6;
-      --today-bg: #eff6ff;
-      --today-border: #3b82f6;
-      --hover: #f9fafb;
+      /* Lambda 2.0 Brand — Primary palette */
+      --terminal: #0B0B0B;
+      --shell: #E7E6D9;
+      --ultraviolet: #6236F4;
 
-      /* Category colors — vibrant and distinct */
-      --event: #d97706;
-      --event-bg: #fff3d0;
-      --event-border: #f59e0b;
-      --campaign: #7c3aed;
+      /* Lambda 2.0 Brand — Secondary palette */
+      --lambda-red: #E70000;
+      --lambda-blue: #0000D9;
+      --lambda-green: #00E600;
+      --lambda-cyan: #00E6D9;
+      --lambda-magenta: #E700D9;
+      --lambda-yellow: #E7E600;
+
+      /* App tokens mapped from brand */
+      --bg: #ffffff;
+      --text: var(--terminal);
+      --text-secondary: #5c5c52;
+      --border: #d0cfbf;
+      --border-light: var(--shell);
+      --today-bg: #ede9fe;
+      --today-border: var(--ultraviolet);
+      --hover: #f2f1e8;
+
+      /* Category colors — Lambda secondary palette */
+      --event: #c46800;
+      --event-bg: #fef5e7;
+      --event-border: #e09030;
+      --campaign: var(--ultraviolet);
       --campaign-bg: #ede9fe;
-      --campaign-border: #8b5cf6;
-      --asset: #0891b2;
-      --asset-bg: #e0f7fa;
-      --asset-border: #06b6d4;
-      --project: #dc2626;
-      --project-bg: #fee2e2;
-      --project-border: #ef4444;
-      --pr-comms: #c026d3;
-      --pr-comms-bg: #fae8ff;
-      --pr-comms-border: #d946ef;
+      --campaign-border: #7c5df7;
+      --asset: #00a5a0;
+      --asset-bg: #e6faf9;
+      --asset-border: var(--lambda-cyan);
+      --project: var(--lambda-red);
+      --project-bg: #fde8e8;
+      --project-border: #ff3333;
+      --pr-comms: #c000b8;
+      --pr-comms-bg: #fce8fc;
+      --pr-comms-border: var(--lambda-magenta);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
@@ -65,8 +82,10 @@
     }
 
     .header h1 {
+      font-family: Helvetica, Arial, sans-serif;
       font-size: 20px;
       font-weight: 600;
+      letter-spacing: -0.3px;
     }
 
     .month-nav {
@@ -91,6 +110,7 @@
     }
 
     .month-label {
+      font-family: Helvetica, Arial, sans-serif;
       font-size: 16px;
       font-weight: 600;
       min-width: 180px;
@@ -98,13 +118,13 @@
     }
 
     .today-btn {
-      background: #3b82f6 !important;
+      background: var(--ultraviolet) !important;
       color: white !important;
-      border-color: #3b82f6 !important;
+      border-color: var(--ultraviolet) !important;
     }
 
     .today-btn:hover {
-      background: #2563eb !important;
+      background: #4e20d0 !important;
     }
 
     /* Filter rows — stacked cleanly */
@@ -162,15 +182,15 @@
       border-radius: 50%;
     }
 
-    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #92400e; }
+    .filter-chip[data-category="Event"] { background: var(--event-bg); border-color: var(--event-border); color: #8a5000; }
     .filter-chip[data-category="Event"] .dot { background: var(--event); }
-    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #5b21b6; }
+    .filter-chip[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign-border); color: #4a22c4; }
     .filter-chip[data-category="Campaign"] .dot { background: var(--campaign); }
-    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #0e7490; }
+    .filter-chip[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset-border); color: #007a77; }
     .filter-chip[data-category="Asset"] .dot { background: var(--asset); }
-    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #b91c1c; }
+    .filter-chip[data-category="Project"] { background: var(--project-bg); border-color: var(--project-border); color: #b80000; }
     .filter-chip[data-category="Project"] .dot { background: var(--project); }
-    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #a21caf; }
+    .filter-chip[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms-border); color: #9a0093; }
     .filter-chip[data-category="PR & Comms"] .dot { background: var(--pr-comms); }
 
     /* Pill filters (type, status) */
@@ -194,9 +214,9 @@
     }
 
     .pill.status-active {
-      border-color: #3b82f6;
-      background: #eff6ff;
-      color: #1d4ed8;
+      border-color: var(--ultraviolet);
+      background: #ede9fe;
+      color: var(--ultraviolet);
     }
 
     /* Dropdown filters */
@@ -213,7 +233,7 @@
 
     .filter-select:focus {
       outline: none;
-      border-color: #3b82f6;
+      border-color: var(--ultraviolet);
     }
 
     /* Calendar Grid */
@@ -314,11 +334,11 @@
     .cal-item.action-item { font-weight: 400; }
 
     /* Category-specific item colors */
-    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #92400e; }
-    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #5b21b6; }
-    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset); color: #0e7490; }
-    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #b91c1c; }
-    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #a21caf; }
+    .cal-item[data-category="Event"] { background: var(--event-bg); border-color: var(--event); color: #8a5000; }
+    .cal-item[data-category="Campaign"] { background: var(--campaign-bg); border-color: var(--campaign); color: #4a22c4; }
+    .cal-item[data-category="Asset"] { background: var(--asset-bg); border-color: var(--asset); color: #007a77; }
+    .cal-item[data-category="Project"] { background: var(--project-bg); border-color: var(--project); color: #b80000; }
+    .cal-item[data-category="PR & Comms"] { background: var(--pr-comms-bg); border-color: var(--pr-comms); color: #9a0093; }
 
     /* Multi-day spanning items — connected bar across days */
     .cal-item.span-start {
@@ -359,7 +379,7 @@
     }
 
     .status-dot.done { background: #22c55e; }
-    .status-dot.in-progress { background: #3b82f6; }
+    .status-dot.in-progress { background: var(--ultraviolet); }
     .status-dot.not-started { background: #d1d5db; }
     .status-dot.backlog { background: #9ca3af; }
 
@@ -424,7 +444,9 @@
     }
 
     .popup h3 {
+      font-family: Helvetica, Arial, sans-serif;
       font-size: 18px;
+      font-weight: 600;
       margin-bottom: 12px;
       padding-right: 32px;
     }
@@ -463,8 +485,8 @@
       display: inline-block;
       margin-top: 12px;
       padding: 8px 16px;
-      background: #1a1a1a;
-      color: white;
+      background: var(--terminal);
+      color: var(--shell);
       text-decoration: none;
       border-radius: 6px;
       font-size: 13px;
@@ -473,7 +495,7 @@
     }
 
     .popup-link:hover {
-      background: #374151;
+      background: var(--ultraviolet);
     }
 
     /* Loading & Error states */
@@ -487,7 +509,7 @@
       width: 32px;
       height: 32px;
       border: 3px solid var(--border);
-      border-top-color: #3b82f6;
+      border-top-color: var(--ultraviolet);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin: 0 auto 12px;
@@ -500,8 +522,8 @@
     .error {
       text-align: center;
       padding: 40px 20px;
-      color: #dc2626;
-      background: #fef2f2;
+      color: var(--lambda-red);
+      background: var(--project-bg);
       border-radius: 8px;
       margin: 20px 0;
     }
@@ -560,9 +582,9 @@
     }
 
     .view-btn.active {
-      background: #1a1a1a;
-      color: white;
-      border-color: #1a1a1a;
+      background: var(--terminal);
+      color: var(--shell);
+      border-color: var(--terminal);
     }
 
     .view-btn.save-btn {
@@ -571,20 +593,20 @@
     }
 
     .view-btn.save-btn:hover {
-      border-color: #3b82f6;
-      color: #3b82f6;
+      border-color: var(--ultraviolet);
+      color: var(--ultraviolet);
     }
 
     .view-btn.delete-btn {
       font-size: 10px;
       padding: 2px 6px;
-      color: #dc2626;
+      color: var(--lambda-red);
       border-color: transparent;
       background: transparent;
     }
 
     .view-btn.delete-btn:hover {
-      background: #fee2e2;
+      background: var(--project-bg);
     }
 
     /* Responsive */
