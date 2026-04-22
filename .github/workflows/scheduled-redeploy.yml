@@ -8,7 +8,7 @@ on:
 jobs:
   redeploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: Trigger Render deploy
         env:
@@ -22,18 +22,4 @@ jobs:
             echo "::error::Deploy hook returned $HTTP_CODE"
             exit 1
           fi
-
-      - name: Wait for deploy and verify /api/health
-        run: |
-          echo "Polling /api/health until cache is fresh (max 100s)..."
-          for i in {1..20}; do
-            sleep 5
-            RESPONSE=$(curl -sS https://activities-calendar.onrender.com/api/health 2>/dev/null || echo '{}')
-            AGE=$(echo "$RESPONSE" | grep -oE '"cacheAge":"[0-9]+' | grep -oE '[0-9]+' || echo "-1")
-            echo "Attempt $i (t=$((i*5))s): $RESPONSE"
-            if [ "$AGE" != "-1" ] && [ "$AGE" -lt 120 ]; then
-              echo "Cache refreshed successfully after $((i * 5)) seconds"
-              exit 0
-            fi
-          done
-          echo "::warning::Cache did not go fresh within 100 seconds"
+          echo "Deploy triggered successfully — not waiting for completion."
