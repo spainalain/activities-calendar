@@ -1,0 +1,40 @@
+name: Scheduled Render redeploy
+
+   on:
+     schedule:
+       # 6 AM, 11 AM, 5 PM Pacific. Cron in GitHub Actions is UTC-only.
+       # These UTC times target PDT (UTC-7). During PST (winter), runs fire
+       # one hour later in local time (7 AM / 12 PM / 6 PM) — acceptable drift.
+       - cron: '0 13,18,0 * * *'
+     workflow_dispatch: {}
+
+   jobs:
+     redeploy:
+       runs-on: ubuntu-latest
+       timeout-minutes: 5
+       steps:
+         - name: Trigger Render deploy
+           env:
+             HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+           run: |
+             echo "Triggering Render deploy hook..."
+             HTTP_CODE=$(curl -sS -o /tmp/hook_resp.json -w "%{http_code}" -X POST "$HOOK")
+             echo "HTTP status: $HTTP_CODE"
+             cat /tmp/hook_resp.json
+             if [ "$HTTP_CODE" -ge 400 ]; then
+               echo "::error::Deploy hook returned $HTTP_CODE"
+               exit 1
+             fi
+
+         - name: Wait for deploy to come online
+           run: sleep 90
+
+         - name: Verify /api/health
+           run: |
+             RESPONSE=$(curl -sS https://activities-calendar.onrender.com/api/health)
+             echo "Health: $RESPONSE"
+             AGE=$(echo "$RESPONSE" | grep -oE '"cacheAge":"[0-9]+' | grep -oE '[0-9]+' || echo "-1")
+             echo "cacheAge seconds: $AGE"
+             if [ "$AGE" = "-1" ] || [ "$AGE" -gt 600 ]; then
+               echo "::warning::Cache did not refresh as expected (age=${AGE}s)"
+             fi
