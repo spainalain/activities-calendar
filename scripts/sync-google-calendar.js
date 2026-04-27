@@ -117,6 +117,34 @@ async function listAllManagedEvents(calendar) {
   } while (pageToken);
   return events;
 }
+function isAlreadyDeleted(err) {
+  const code = err.code || err.response?.status;
+  const msg = (err.message || '').toLowerCase();
+  return code === 410 || msg.includes('has been deleted');
+}
+
+function isRateLimit(err) {
+  const code = err.code || err.response?.status;
+  const msg = err.message || '';
+  return code === 429 || (code === 403 && /rate limit|quota/i.test(msg));
+}
+
+async function callWithBackoff(fn, label) {
+  // Try up to 4 times with exponential backoff on rate-limit errors
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (isRateLimit(err) && attempt < 3) {
+        const wait = 1000 * Math.pow(2, attempt) + Math.floor(Math.random() * 500);
+        console.log(`Rate limited on ${label}, waiting ${wait}ms (retry ${attempt + 2}/4)`);
+        await new Promise((r) => setTimeout(r, wait));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
 
 async function main() {
   if (!CALENDAR_ID) throw new Error('GOOGLE_CALENDAR_ID is not set');
@@ -138,13 +166,13 @@ async function main() {
   const activities = payload.data || [];
   console.log(`Fetched ${activities.length} activities from Render`);
 
-  // 2. Build expected event set (skipping activities with no valid date)
+  // 2. Build expected event set (skipping activities with no valid date or wrong type)
   const expected = new Map();
   for (const a of activities) {
     const body = buildEventBody(a);
     if (body) expected.set(body.id, body);
   }
-  console.log(`${expected.size} activities will be synced (rest skipped due to missing End Date)`);
+  console.log(`${expected.size} activities will be synced (rest skipped)`);
 
   // 3. List all events we currently manage on this calendar
   const existing = await listAllManagedEvents(calendar);
@@ -152,21 +180,26 @@ async function main() {
 
   // 4. Compute work
   let inserted = 0, updated = 0, unchanged = 0, deleted = 0, errors = 0;
+  const THROTTLE_MS = 150; // ~6 req/s, well under Calendar's 10 req/s limit
 
   // Inserts and updates
   for (const [id, body] of expected) {
     const existingEvent = existing.get(id);
     try {
       if (!existingEvent) {
-        await calendar.events.insert({ calendarId: CALENDAR_ID, requestBody: body });
+        await callWithBackoff(
+          () => calendar.events.insert({ calendarId: CALENDAR_ID, requestBody: body }),
+          `insert ${id}`
+        );
         inserted++;
+        await new Promise((r) => setTimeout(r, THROTTLE_MS));
       } else if (!eventsEqual(existingEvent, body)) {
-        await calendar.events.update({
-          calendarId: CALENDAR_ID,
-          eventId: id,
-          requestBody: body,
-        });
+        await callWithBackoff(
+          () => calendar.events.update({ calendarId: CALENDAR_ID, eventId: id, requestBody: body }),
+          `update ${id}`
+        );
         updated++;
+        await new Promise((r) => setTimeout(r, THROTTLE_MS));
       } else {
         unchanged++;
       }
@@ -180,12 +213,21 @@ async function main() {
   for (const [id, ev] of existing) {
     if (!expected.has(id)) {
       try {
-        await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id });
+        await callWithBackoff(
+          () => calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id }),
+          `delete ${id}`
+        );
         deleted++;
       } catch (err) {
-        console.error(`Error deleting ${id} (${ev.summary}):`, err.message);
-        errors++;
+        if (isAlreadyDeleted(err)) {
+          // Already gone — that's the desired state, count it as deleted
+          deleted++;
+        } else {
+          console.error(`Error deleting ${id} (${ev.summary}):`, err.message);
+          errors++;
+        }
       }
+      await new Promise((r) => setTimeout(r, THROTTLE_MS));
     }
   }
 
@@ -194,12 +236,5 @@ async function main() {
     `unchanged: ${unchanged}, deleted: ${deleted}, errors: ${errors}`
   );
 
-  if (errors > 0) {
-    process.exit(1);
-  }
+  if (errors > 0) process.exit(1);
 }
-
-main().catch((err) => {
-  console.error('Sync failed:', err);
-  process.exit(1);
-});
