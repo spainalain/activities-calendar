@@ -34,8 +34,10 @@ function addOneDay(yyyymmdd) {
   d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString().split('T')[0];
 }
-
 function buildEventBody(activity) {
+  // Skip Action Item types — only Parent and Milestone activities sync to Google Calendar
+  if (activity.type?.startsWith('Action item')) return null;
+
   const end = activity.endDate?.start;
   const start = activity.startDate?.start;
   const isEvent = activity.type === 'Parent - Event';
