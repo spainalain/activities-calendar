@@ -26,8 +26,13 @@ function notionToEventId(notionId) {
   return EVENT_ID_PREFIX + notionId.replace(/-/g, '').toLowerCase();
 }
 
-function addOneDay(yyyymmdd) {
-  const d = new Date(yyyymmdd + 'T00:00:00Z');
+function addOneDay(dateStr) {
+  // Accept "YYYY-MM-DD" or full datetime — strip any time portion first
+  const dateOnly = String(dateStr).split('T')[0];
+  const d = new Date(dateOnly + 'T00:00:00Z');
+  if (isNaN(d.getTime())) {
+    throw new Error('Invalid date: ' + dateStr);
+  }
   d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString().split('T')[0];
 }
@@ -40,21 +45,25 @@ function buildEventBody(activity) {
   const start = activity.startDate && activity.startDate.start;
   const isEvent = activity.type === 'Parent - Event';
 
+ // Normalize to YYYY-MM-DD by stripping any time component
+  const endDateOnly = end ? String(end).split('T')[0] : null;
+  const startDateOnly = start ? String(start).split('T')[0] : null;
+
   let eventStart, eventEndExclusive;
   if (isEvent) {
-    if (!end && !start) return null;
-    if (start && end && start !== end) {
-      eventStart = start;
-      eventEndExclusive = addOneDay(end);
+    if (!endDateOnly && !startDateOnly) return null;
+    if (startDateOnly && endDateOnly && startDateOnly !== endDateOnly) {
+      eventStart = startDateOnly;
+      eventEndExclusive = addOneDay(endDateOnly);
     } else {
-      const single = end || start;
+      const single = endDateOnly || startDateOnly;
       eventStart = single;
       eventEndExclusive = addOneDay(single);
     }
   } else {
-    if (!end) return null;
-    eventStart = end;
-    eventEndExclusive = addOneDay(end);
+    if (!endDateOnly) return null;
+    eventStart = endDateOnly;
+    eventEndExclusive = addOneDay(endDateOnly);
   }
 
   const owners = (activity.owner || []).join(', ') || '—';
